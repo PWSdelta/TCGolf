@@ -1,6 +1,9 @@
 from django.db import models
 from django.utils.text import slugify
 from django.urls import reverse
+from django.core.cache import cache
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
 import json
 
 # Create your models here.
@@ -86,9 +89,9 @@ class Destination(models.Model):
 
     def get_absolute_url(self, language='en'):
         if language == 'en':
-            return reverse('destination_detail', kwargs={'slug': self.generate_slug()})
+            return reverse('destinations:destination_detail', kwargs={'slug': self.generate_slug()})
         else:
-            return reverse('destination_detail_lang', kwargs={
+            return reverse('destinations:destination_detail_lang', kwargs={
                 'language': language, 
                 'slug': self.generate_slug(language)
             })
@@ -219,9 +222,9 @@ class DestinationGuide(models.Model):
     def get_absolute_url(self):
         """Get URL for this specific language guide"""
         if self.language_code == 'en':
-            return reverse('destination_detail', kwargs={'slug': self.slug})
+            return reverse('destinations:destination_detail', kwargs={'slug': self.slug})
         else:
-            return reverse('destination_detail_lang', kwargs={
+            return reverse('destinations:destination_detail_lang', kwargs={
                 'language': self.language_code, 
                 'slug': self.slug
             })
@@ -234,3 +237,24 @@ class DestinationGuide(models.Model):
     
     def __str__(self):
         return f"{self.destination.name} ({self.get_language_code_display()})"
+
+# Cache invalidation signals
+@receiver([post_save, post_delete], sender=Destination)
+def invalidate_destination_cache(sender, **kwargs):
+    """Invalidate home page cache when destinations change"""
+    cache.delete('destinations_grid')
+    # Clear view-level cache for home page
+    cache.delete_many([
+        'views.decorators.cache.cache_page.home',
+        'views.decorators.cache.cache_page.home.en',
+    ])
+
+@receiver([post_save, post_delete], sender=DestinationGuide)
+def invalidate_guide_cache(sender, **kwargs):
+    """Invalidate destination detail cache when guides change"""
+    if hasattr(kwargs.get('instance'), 'destination'):
+        dest = kwargs['instance'].destination
+        # Clear destination detail page cache
+        cache.delete(f'destination_detail_{dest.generate_slug()}')
+        # Also clear home page cache as new content might affect featured status
+        cache.delete('destinations_grid')

@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load cache %}
+{% load destination_extras %}
 
 {% block content %}
 <div class="hero-section">
@@ -14,10 +16,14 @@
     <form method="get" id="search-form">
       <div class="row align-items-center">
         <div class="col-md-9">
-          <input type="text" name="q" class="form-control search-input" 
-                 placeholder="🔍 Search destinations by name or location..." 
-                 value="{{ request.GET.q }}"
-                 id="search-input">
+          <div class="typeahead-wrapper">
+            <input type="text" name="q" class="form-control search-input" 
+                   placeholder="🔍 Search destinations by name or location..." 
+                   value="{{ request.GET.q }}"
+                   id="search-input"
+                   autocomplete="off">
+            <div class="typeahead-dropdown" id="typeahead-dropdown"></div>
+          </div>
         </div>
         <div class="col-md-3">
           <button class="btn search-btn w-100 mt-2 mt-md-0" type="submit" id="search-btn">
@@ -43,35 +49,73 @@
       </p>
     </div>
     <div class="destinations-grid">
-      {% for dest in destinations %}
-        <a href="{{ dest.get_absolute_url }}" class="destination-card-link">
-          <div class="destination-card">
-            <div class="image-placeholder">
-              <div class="golf-icon">
-                ⛳
-                <div class="travel-icon">✈️</div>
-                <div class="travel-message">Let's travel there!</div>
+      {% if not request.GET.q %}
+        {% cache 900 destinations_grid %}
+          {% for dest in destinations %}
+            <a href="{{ dest.get_absolute_url }}" class="destination-card-link">
+              <div class="destination-card">
+                <div class="image-placeholder">
+                  <div class="golf-icon">
+                    ⛳
+                    <div class="travel-icon">✈️</div>
+                    <div class="travel-message">Let's travel there!</div>
+                  </div>
+                  <div class="destination-preview">
+                    <h3 class="destination-name">{{ dest.name }}</h3>
+                    <p class="destination-location">
+                      <span class="location-icon">📍</span>
+                      {{ dest.city }}, {{ dest.region_or_state }}
+                    </p>
+                    <p class="destination-country">
+                      {{ dest.country|country_flag }} {{ dest.country }}
+                    </p>
+                  </div>
+                </div>
+                <div class="card-overlay">
+                  <span class="view-details">✈️ Explore Destination →</span>
+                </div>
               </div>
-              <div class="destination-preview">
-                <h3 class="destination-name">{{ dest.name }}</h3>
-                <p class="destination-location">
-                  <span class="location-icon">📍</span>
-                  {{ dest.city }}, {{ dest.region_or_state }}
-                </p>
-                <p class="destination-country">{{ dest.country }}</p>
+            </a>
+          {% empty %}
+            <div class="col-12 text-center py-5">
+              <h4 style="color: #6c757d;">No destinations found</h4>
+              <p>Try adjusting your search criteria</p>
+            </div>
+          {% endfor %}
+        {% endcache %}
+      {% else %}
+        {% for dest in destinations %}
+          <a href="{{ dest.get_absolute_url }}" class="destination-card-link">
+            <div class="destination-card">
+              <div class="image-placeholder">
+                <div class="golf-icon">
+                  ⛳
+                  <div class="travel-icon">✈️</div>
+                  <div class="travel-message">Let's travel there!</div>
+                </div>
+                <div class="destination-preview">
+                  <h3 class="destination-name">{{ dest.name }}</h3>
+                  <p class="destination-location">
+                    <span class="location-icon">📍</span>
+                    {{ dest.city }}, {{ dest.region_or_state }}
+                  </p>
+                  <p class="destination-country">
+                    {{ dest.country|country_flag }} {{ dest.country }}
+                  </p>
+                </div>
+              </div>
+              <div class="card-overlay">
+                <span class="view-details">✈️ Explore Destination →</span>
               </div>
             </div>
-            <div class="card-overlay">
-              <span class="view-details">✈️ Explore Destination →</span>
-            </div>
+          </a>
+        {% empty %}
+          <div class="col-12 text-center py-5">
+            <h4 style="color: #6c757d;">No destinations found</h4>
+            <p>Try adjusting your search criteria</p>
           </div>
-        </a>
-      {% empty %}
-        <div class="col-12 text-center py-5">
-          <h4 style="color: #6c757d;">No destinations found</h4>
-          <p>Try adjusting your search criteria</p>
-        </div>
-      {% endfor %}
+        {% endfor %}
+      {% endif %}
     </div>
   </div>
 </div>
@@ -161,6 +205,74 @@
     animation: fadeInUp 0.6s ease-out;
   }
   
+  /* Typeahead Search Styles */
+  .typeahead-wrapper {
+    position: relative;
+  }
+  
+  .typeahead-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+  }
+  
+  .typeahead-dropdown.show {
+    display: block;
+  }
+  
+  .typeahead-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .typeahead-item:hover,
+  .typeahead-item.active {
+    background-color: #f8f9fa;
+  }
+  
+  .typeahead-item:last-child {
+    border-bottom: none;
+  }
+  
+  .typeahead-flag {
+    font-size: 1.2em;
+    min-width: 24px;
+  }
+  
+  .typeahead-content {
+    flex: 1;
+  }
+  
+  .typeahead-name {
+    font-weight: 600;
+    color: #2d5a27;
+    margin-bottom: 2px;
+  }
+  
+  .typeahead-location {
+    font-size: 0.9em;
+    color: #666;
+  }
+  
+  .search-input:focus + .typeahead-dropdown {
+    border-color: var(--golf-green);
+  }
+  
   .destination-card {
     animation: fadeInUp 0.6s ease-out;
     animation-fill-mode: both;
@@ -226,7 +338,120 @@ document.addEventListener('DOMContentLoaded', function() {
   const searchBtn = document.getElementById('search-btn');
   const btnText = searchBtn.querySelector('.btn-text');
   const loading = searchBtn.querySelector('.loading');
+  const searchInput = document.getElementById('search-input');
+  const typeaheadDropdown = document.getElementById('typeahead-dropdown');
   
+  let typeaheadTimeout;
+  let currentResults = [];
+  let selectedIndex = -1;
+  
+  // Typeahead search functionality
+  searchInput.addEventListener('input', function() {
+    const query = this.value.trim();
+    
+    clearTimeout(typeaheadTimeout);
+    
+    if (query.length < 2) {
+      hideTypeahead();
+      return;
+    }
+    
+    // Debounce the search
+    typeaheadTimeout = setTimeout(() => {
+      performTypeaheadSearch(query);
+    }, 300);
+  });
+  
+  // Keyboard navigation
+  searchInput.addEventListener('keydown', function(e) {
+    if (!typeaheadDropdown.classList.contains('show')) return;
+    
+    switch(e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        selectedIndex = Math.min(selectedIndex + 1, currentResults.length - 1);
+        updateSelection();
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        selectedIndex = Math.max(selectedIndex - 1, -1);
+        updateSelection();
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0 && currentResults[selectedIndex]) {
+          window.location.href = currentResults[selectedIndex].url;
+        } else {
+          searchForm.submit();
+        }
+        break;
+      case 'Escape':
+        hideTypeahead();
+        break;
+    }
+  });
+  
+  // Click outside to close
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.typeahead-wrapper')) {
+      hideTypeahead();
+    }
+  });
+  
+  function performTypeaheadSearch(query) {
+    fetch(`/api/typeahead-search/?q=${encodeURIComponent(query)}`)
+      .then(response => response.json())
+      .then(data => {
+        currentResults = data.results;
+        selectedIndex = -1;
+        renderTypeaheadResults(data.results);
+      })
+      .catch(error => {
+        console.error('Typeahead search error:', error);
+        hideTypeahead();
+      });
+  }
+  
+  function renderTypeaheadResults(results) {
+    if (results.length === 0) {
+      hideTypeahead();
+      return;
+    }
+    
+    const html = results.map((result, index) => `
+      <div class="typeahead-item" data-index="${index}" data-url="${result.url}">
+        <div class="typeahead-flag">${result.country_flag}</div>
+        <div class="typeahead-content">
+          <div class="typeahead-name">${result.display_text}</div>
+          <div class="typeahead-location">${result.location_text}</div>
+        </div>
+      </div>
+    `).join('');
+    
+    typeaheadDropdown.innerHTML = html;
+    typeaheadDropdown.classList.add('show');
+    
+    // Add click handlers
+    typeaheadDropdown.querySelectorAll('.typeahead-item').forEach(item => {
+      item.addEventListener('click', function() {
+        window.location.href = this.dataset.url;
+      });
+    });
+  }
+  
+  function updateSelection() {
+    const items = typeaheadDropdown.querySelectorAll('.typeahead-item');
+    items.forEach((item, index) => {
+      item.classList.toggle('active', index === selectedIndex);
+    });
+  }
+  
+  function hideTypeahead() {
+    typeaheadDropdown.classList.remove('show');
+    selectedIndex = -1;
+  }
+  
+  // Enhanced search form handling
   searchForm.addEventListener('submit', function() {
     btnText.classList.add('d-none');
     loading.classList.remove('d-none');
@@ -234,13 +459,18 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   // Add search input focus effects
-  const searchInput = document.getElementById('search-input');
   searchInput.addEventListener('focus', function() {
     this.closest('.search-container').style.transform = 'translateY(-2px)';
   });
   
-  searchInput.addEventListener('blur', function() {
-    this.closest('.search-container').style.transform = 'translateY(0)';
+  searchInput.addEventListener('blur', function(e) {
+    // Delay hiding to allow for clicks on typeahead items
+    setTimeout(() => {
+      this.closest('.search-container').style.transform = 'translateY(0)';
+      if (!e.relatedTarget || !e.relatedTarget.closest('.typeahead-dropdown')) {
+        hideTypeahead();
+      }
+    }, 150);
   });
 });
 </script>

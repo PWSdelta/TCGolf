@@ -5,6 +5,59 @@ import hashlib
 
 register = template.Library()
 
+# Country code to flag emoji mapping
+COUNTRY_FLAGS = {
+    'United States': '🇺🇸',
+    'USA': '🇺🇸',  # Alternative name
+    'US': '🇺🇸',   # Alternative name
+    'Canada': '🇨🇦', 
+    'United Kingdom': '🇬🇧',
+    'UK': '🇬🇧',   # Alternative name
+    'Ireland': '🇮🇪',
+    'Scotland': '🏴',
+    'Spain': '🇪🇸',
+    'France': '🇫🇷',
+    'Germany': '🇩🇪',
+    'Italy': '🇮🇹',
+    'Portugal': '🇵🇹',
+    'Netherlands': '🇳🇱',
+    'Switzerland': '🇨🇭',
+    'Austria': '🇦🇹',
+    'Denmark': '🇩🇰',
+    'Sweden': '🇸🇪',
+    'Norway': '🇳🇴',
+    'Japan': '🇯🇵',
+    'South Korea': '🇰🇷',
+    'China': '🇨🇳',
+    'Australia': '🇦🇺',
+    'New Zealand': '🇳🇿',
+    'South Africa': '🇿🇦',
+    'UAE': '🇦🇪',
+    'United Arab Emirates': '🇦🇪',  # Alternative name
+    'Thailand': '🇹🇭',
+    'Malaysia': '🇲🇾',
+    'Singapore': '🇸🇬',
+    'Mexico': '🇲🇽',
+    'Brazil': '🇧🇷',
+    'Argentina': '🇦🇷',
+    'Chile': '🇨🇱',
+    'Turkey': '🇹🇷',
+    'Morocco': '🇲🇦',
+    'Egypt': '🇪🇬',
+    'India': '🇮🇳',
+    'Saudi Arabia': '🇸🇦',
+    'Ghana': '🇬🇭',
+    'Côte d\'Ivoire': '🇨🇮',
+}
+
+@register.filter
+def country_flag(country_name):
+    """
+    Template filter to get country flag emoji
+    Usage: {{ destination.country|country_flag }}
+    """
+    return COUNTRY_FLAGS.get(country_name, '🌍')  # Default to globe emoji
+
 @register.filter
 def lookup(dictionary, key):
     """
@@ -25,7 +78,7 @@ def language_url(destination, language_code):
             return destination.get_absolute_url()
         else:
             slug = destination.generate_slug(language_code)
-            return reverse('destination_detail_lang', kwargs={
+            return reverse('destinations:destination_detail_lang', kwargs={
                 'language': language_code, 
                 'slug': slug
             })

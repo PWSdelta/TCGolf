@@ -1,0 +1,2 @@
+# Content Worker Requirements for Ollama-based generation
+requests>=2.28.0
