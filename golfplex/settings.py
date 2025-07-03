@@ -43,7 +43,9 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
+    # Replace the default CommonMiddleware with our custom version
+    # 'django.middleware.common.CommonMiddleware',
+    'destinations.middleware.NoTrailingSlashForFileExtensionsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -152,3 +154,10 @@ CACHES = {
 # Cache key prefix to avoid conflicts
 CACHE_MIDDLEWARE_KEY_PREFIX = 'golfplex'
 CACHE_MIDDLEWARE_SECONDS = 900  # 15 minutes
+
+# URL handling
+APPEND_SLASH = True  # Django will redirect /path to /path/ by default
+
+# Define exception patterns where slash should not be appended
+PREPEND_WWW = False
+DISALLOW_SLASH_APPEND_EXTENSIONS = ['.xml', '.txt', '.json']  # File extensions that should not get a trailing slash
