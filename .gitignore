@@ -222,7 +222,7 @@ logs/
 # Development databases (keep your SQLite for dev, but exclude production DBs)
 # Uncomment the line below if you want to exclude your dev SQLite DB too
 # *.db
-.sqlite3
+*.sqlite3
 
 # AI/ML model files (if you cache any)
 *.pkl
