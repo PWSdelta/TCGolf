@@ -25,18 +25,18 @@
       "@type": "ListItem",
       "position": 1,
       "name": "Home",
-      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'destinations:home' %}"
+      "item": "{{ request.scheme }}://{{ request.get_host }}/"
     },
     {
       "@type": "ListItem",
       "position": 2,
-      "name": "{{ destination.country }}",
-      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'destinations:home' %}?q={{ destination.country }}"
+      "name": "{{ destination.country|escapejs }}",
+      "item": "{{ request.scheme }}://{{ request.get_host }}/?q={{ destination.country|urlencode }}"
     },
     {
       "@type": "ListItem",
       "position": 3,
-      "name": "{{ destination.city }}",
+      "name": "{{ destination.city|escapejs }}",
       "item": "{{ request.scheme }}://{{ request.get_host }}{{ destination.get_absolute_url }}"
     }
   ]
@@ -44,57 +44,26 @@
 {
   "@context": "https://schema.org",
   "@type": "TravelGuide",
-  "name": "{{ destination.name }} Golf Guide",
-  "description": "Complete golf travel guide for {{ destination.city }}, {{ destination.country }}",
+  "name": "{{ destination.name|escapejs }} Golf Guide",
+  "description": "Complete golf travel guide for {{ destination.city|escapejs }}, {{ destination.country|escapejs }}",
   "url": "{{ request.scheme }}://{{ request.get_host }}{{ destination.get_absolute_url }}",
   "about": {
-    "@type": "Place",
-    "name": "{{ destination.name }}",
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "{{ destination.city }}",
-      "addressRegion": "{{ destination.region_or_state }}",
-      "addressCountry": "{{ destination.country }}"
-    },
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": {{ destination.latitude }},
-      "longitude": {{ destination.longitude }}
-    },
-    "description": "Premier golf destination in {{ destination.city }}, {{ destination.country }}"
-  },
-  "author": {
-    "@type": "Organization",
-    "name": "Golf Destination Explorer"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Golf Destination Explorer"
-  },
-  "datePublished": "{{ guide.created_at|date:'c' }}",
-  "dateModified": "{{ guide.updated_at|date:'c' }}",
-  "inLanguage": "{{ guide.language_code }}",
-  "mainEntity": {
-    "@type": "TouristDestination",
-    "name": "{{ destination.name }}",
-    "description": "World-class golf destination featuring premium courses and exceptional golf experiences",
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "{{ destination.city }}",
-      "addressRegion": "{{ destination.region_or_state }}",
-      "addressCountry": "{{ destination.country }}"
-    },
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": {{ destination.latitude }},
-      "longitude": {{ destination.longitude }}
-    },
-    "touristType": "Golf Enthusiasts",
-    "includedInDataCatalog": {
-      "@type": "DataCatalog",
-      "name": "Golf Destination Explorer"
+    "@type": "City",
+    "name": "{{ destination.city|escapejs }}",
+    "containedInPlace": {
+      "@type": "Country",
+      "name": "{{ destination.country|escapejs }}"
     }
-  }
+  },
+  {% if destination.latitude and destination.longitude %}
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "{{ destination.latitude }}",
+    "longitude": "{{ destination.longitude }}"
+  },
+  {% endif %}
+  "datePublished": "{{ guide.created_at|date:'Y-m-d' }}",
+  "dateModified": "{{ guide.updated_at|date:'Y-m-d' }}"
 }
 ]
 {% endblock %}
@@ -103,8 +72,8 @@
 <div class="container py-2">
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'destinations:home' %}">Home</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'destinations:home' %}?q={{ destination.country }}">{{ destination.country }}</a></li>
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item"><a href="/?q={{ destination.country|urlencode }}">{{ destination.country }}</a></li>
       <li class="breadcrumb-item active" aria-current="page">{{ destination.city }}</li>
     </ol>
   </nav>
