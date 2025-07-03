@@ -19,6 +19,10 @@ def improve_content_formatting(text):
     if not text:
         return ""
     
+    # Remove template instructions
+    text = re.sub(r'---.*\(Continue with.*\).*---', '', text, flags=re.DOTALL)
+    text = re.sub(r'\n*---.*---\n*', '\n\n', text)  # Remove any remaining template markers
+    
     lines = text.split('\n')
     result = []
     in_numbered_list = False
