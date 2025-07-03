@@ -12,8 +12,8 @@
   <meta name="robots" content="index, follow">
   
   <!-- Open Graph Meta Tags -->
-  <meta property="og:title" content="{% block og_title %}{% block title %}Golf Destination Explorer - Discover Amazing Golf Courses Worldwide{% endblock %}{% endblock %}">
-  <meta property="og:description" content="{% block og_description %}{% block meta_description %}Explore the world's finest golf courses and destinations with detailed guides, insider tips, and comprehensive information about top golf locations worldwide.{% endblock %}{% endblock %}">
+  <meta property="og:title" content="{% block og_title %}{{ block.super }}{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}{{ block.super }}{% endblock %}">
   <meta property="og:type" content="{% block og_type %}website{% endblock %}">
   <meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}">
   <meta property="og:image" content="{% block og_image %}{% load static %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/golf-og-image.jpg' %}{% endblock %}">
@@ -21,9 +21,9 @@
   
   <!-- Twitter Card Meta Tags -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="{% block twitter_title %}{% block og_title %}{% block title %}Golf Destination Explorer - Discover Amazing Golf Courses Worldwide{% endblock %}{% endblock %}{% endblock %}">
-  <meta name="twitter:description" content="{% block twitter_description %}{% block og_description %}{% block meta_description %}Explore the world's finest golf courses and destinations with detailed guides, insider tips, and comprehensive information about top golf locations worldwide.{% endblock %}{% endblock %}{% endblock %}">
-  <meta name="twitter:image" content="{% block twitter_image %}{% block og_image %}{% load static %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/golf-og-image.jpg' %}{% endblock %}{% endblock %}">
+  <meta name="twitter:title" content="{% block twitter_title %}{{ block.super }}{% endblock %}">
+  <meta name="twitter:description" content="{% block twitter_description %}{{ block.super }}{% endblock %}">
+  <meta name="twitter:image" content="{% block twitter_image %}{{ block.super }}{% endblock %}">
   
   <!-- Canonical URL -->
   <link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}">

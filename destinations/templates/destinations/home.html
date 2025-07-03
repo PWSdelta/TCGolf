@@ -20,29 +20,32 @@
     "@type": "SearchAction",
     "target": "{{ request.scheme }}://{{ request.get_host }}/?q={search_term_string}",
     "query-input": "required name=search_term_string"
-  },
-  "mainEntity": {
-    "@type": "ItemList",
-    "name": "Golf Destinations",
-    "description": "Collection of world-class golf destinations and courses",
-    "numberOfItems": {{ destinations|length }},
-    "itemListElement": [
-      {% for destination in destinations|slice:":10" %}
-      {
-        "@type": "Place",
-        "name": "{{ destination.name }}",
-        "address": {
-          "@type": "PostalAddress",
-          "addressLocality": "{{ destination.city }}",
-          "addressRegion": "{{ destination.region_or_state }}",
-          "addressCountry": "{{ destination.country }}"
-        },
-        "url": "{{ request.scheme }}://{{ request.get_host }}{{ destination.get_absolute_url }}"
-      }{% if not forloop.last %},{% endif %}
-      {% endfor %}
-    ]
   }
 }
+{% if destinations %}
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Golf Destinations",
+  "description": "Collection of world-class golf destinations and courses",
+  "numberOfItems": {{ destinations|length }},
+  "itemListElement": [
+    {% for destination in destinations|slice:":10" %}
+    {
+      "@type": "Place",
+      "name": "{{ destination.name|escapejs }}",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "{{ destination.city|escapejs }}",
+        "addressRegion": "{{ destination.region_or_state|escapejs }}",
+        "addressCountry": "{{ destination.country|escapejs }}"
+      },
+      "url": "{{ request.scheme }}://{{ request.get_host }}{{ destination.get_absolute_url }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+{% endif %}
 {% endblock %}
 
 {% block content %}
