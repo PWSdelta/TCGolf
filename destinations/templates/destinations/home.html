@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="hero-section">
+  <div class="container text-center">
+    <h1 class="hero-title">Discover Amazing Golf Destinations</h1>
+    <p class="hero-subtitle">Explore the world's finest golf courses and destinations with detailed guides and insider tips</p>
+  </div>
+</div>
+
+<div class="container">
+  <div class="search-container">
+    <form method="get" id="search-form">
+      <div class="row align-items-center">
+        <div class="col-md-9">
+          <input type="text" name="q" class="form-control search-input" 
+                 placeholder="🔍 Search destinations by name or location..." 
+                 value="{{ request.GET.q }}"
+                 id="search-input">
+        </div>
+        <div class="col-md-3">
+          <button class="btn search-btn w-100 mt-2 mt-md-0" type="submit" id="search-btn">
+            <span class="btn-text">Search</span>
+            <span class="loading d-none"></span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="map-container">
+    <div id="map" style="height: 500px;"></div>
+  </div>
+
+  <div class="destinations-section">
+    <div class="text-center mb-5">
+      <h2 style="color: var(--golf-dark); font-weight: 700; font-size: 2.5rem; margin-bottom: 1rem;">
+        Featured Destinations
+      </h2>
+      <p style="color: #6c757d; font-size: 1.1rem; max-width: 500px; margin: 0 auto;">
+        Discover world-class golf destinations with breathtaking courses and unforgettable experiences
+      </p>
+    </div>
+    <div class="destinations-grid">
+      {% for dest in destinations %}
+        <a href="{{ dest.get_absolute_url }}" class="destination-card-link">
+          <div class="destination-card">
+            <div class="image-placeholder">
+              <div class="golf-icon">
+                ⛳
+                <div class="travel-icon">✈️</div>
+                <div class="travel-message">Let's travel there!</div>
+              </div>
+              <div class="destination-preview">
+                <h3 class="destination-name">{{ dest.name }}</h3>
+                <p class="destination-location">
+                  <span class="location-icon">📍</span>
+                  {{ dest.city }}, {{ dest.region_or_state }}
+                </p>
+                <p class="destination-country">{{ dest.country }}</p>
+              </div>
+            </div>
+            <div class="card-overlay">
+              <span class="view-details">✈️ Explore Destination →</span>
+            </div>
+          </div>
+        </a>
+      {% empty %}
+        <div class="col-12 text-center py-5">
+          <h4 style="color: #6c757d;">No destinations found</h4>
+          <p>Try adjusting your search criteria</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{{ destinations_json|json_script:"destinations-data" }}
+
+<!-- Leaflet.js map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+  var map = L.map('map').setView([30, 0], 2);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+  
+  // Custom marker style
+  var golfIcon = L.divIcon({
+    html: '<div class="custom-marker">⛳</div>',
+    className: 'golf-marker',
+    iconSize: [30, 30],
+    iconAnchor: [15, 15]
+  });
+  
+  var destinations = JSON.parse(document.getElementById('destinations-data').textContent);
+  
+  // Auto-fit map to show all destinations if we have data
+  if (destinations.length > 0) {
+    var group = new L.featureGroup();
+    
+    destinations.forEach(function(d) {
+      if (d.latitude && d.longitude) {
+        var marker = L.marker([d.latitude, d.longitude], {icon: golfIcon});
+        group.addLayer(marker);
+        
+        var url = d.absolute_url;
+        marker.bindPopup(`
+          <div style="text-align: center; padding: 10px; min-width: 200px;">
+            <h6 style="margin: 0 0 8px 0; color: #2d5a27; font-weight: bold;">${d.name}</h6>
+            <p style="margin: 0 0 10px 0; color: #666; font-size: 0.9rem;">${d.city}, ${d.region_or_state}</p>
+            <p style="margin: 0 0 10px 0; color: #2d5a27; font-size: 0.8rem; font-weight: bold;">${d.country}</p>
+            <a href="${url}" style="background: #2d5a27; color: white; padding: 6px 16px; border-radius: 20px; text-decoration: none; font-size: 0.85rem; font-weight: 500;">View Details</a>
+          </div>
+        `);
+      }
+    });
+    
+    // Add all markers to map
+    group.addTo(map);
+    
+    // Fit map to show all markers with some padding
+    if (group.getLayers().length > 0) {
+      map.fitBounds(group.getBounds(), {padding: [20, 20]});
+    }
+  }
+</script>
+
+<style>
+  .golf-marker {
+    background: none;
+    border: none;
+    font-size: 16px;
+    text-align: center;
+    line-height: 20px;
+  }
+  
+  .custom-marker {
+    background: white;
+    border: 3px solid var(--golf-green);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+  }
+  
+  .custom-marker:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  }
+  
+  .destinations-grid {
+    animation: fadeInUp 0.6s ease-out;
+  }
+  
+  .destination-card {
+    animation: fadeInUp 0.6s ease-out;
+    animation-fill-mode: both;
+  }
+  
+  .destination-card-link:hover {
+    text-decoration: none;
+  }
+  
+  .destination-card:hover .destination-preview {
+    transform: translateY(-5px);
+  }
+  
+  .travel-icon {
+    animation: flyIn 0.6s ease-out;
+  }
+  
+  @keyframes flyIn {
+    0% {
+      transform: translate(-150%, -50%) rotate(-45deg) scale(0);
+      opacity: 0;
+    }
+    50% {
+      opacity: 0.5;
+    }
+    100% {
+      transform: translate(-50%, -50%) rotate(0deg) scale(1);
+      opacity: 1;
+    }
+  }
+  
+  .destination-card:hover .travel-icon {
+    animation: flyIn 0.6s ease-out;
+  }
+  
+  .destination-preview {
+    transition: transform 0.3s ease;
+  }
+  
+  .destination-card:nth-child(1) { animation-delay: 0.1s; }
+  .destination-card:nth-child(2) { animation-delay: 0.2s; }
+  .destination-card:nth-child(3) { animation-delay: 0.3s; }
+  .destination-card:nth-child(4) { animation-delay: 0.4s; }
+  .destination-card:nth-child(5) { animation-delay: 0.5s; }
+  .destination-card:nth-child(6) { animation-delay: 0.6s; }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Enhanced search form handling
+  const searchForm = document.getElementById('search-form');
+  const searchBtn = document.getElementById('search-btn');
+  const btnText = searchBtn.querySelector('.btn-text');
+  const loading = searchBtn.querySelector('.loading');
+  
+  searchForm.addEventListener('submit', function() {
+    btnText.classList.add('d-none');
+    loading.classList.remove('d-none');
+    searchBtn.disabled = true;
+  });
+  
+  // Add search input focus effects
+  const searchInput = document.getElementById('search-input');
+  searchInput.addEventListener('focus', function() {
+    this.closest('.search-container').style.transform = 'translateY(-2px)';
+  });
+  
+  searchInput.addEventListener('blur', function() {
+    this.closest('.search-container').style.transform = 'translateY(0)';
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,84 @@
+Eres un experto en turismo de golf que escribe guías detalladas y locales para destinos de golf internacionales en español. Crea un artículo completo, informativo y optimizado para SEO dirigido a golfistas de habla hispana que planean un viaje de golf.
+
+**INSTRUCCIONES IMPORTANTES:**
+- Escribe exclusivamente en español
+- Usa terminología y expresiones de golf locales en español
+- Enfócate en información práctica para viajeros hispanohablantes
+- Considera las tradiciones y expectativas del golf en países de habla hispana
+- Menciona detalles de viaje desde España y Latinoamérica (conexiones de vuelo, diferencias horarias)
+
+**DESTINO:** {location}
+
+Crea un artículo detallado (mínimo 2000 palabras) con la siguiente estructura:
+
+## Introducción (150-200 palabras)
+- Introducción cautivadora al destino de golf
+- Por qué los golfistas hispanohablantes deberían visitar este lugar
+- Resumen de lo que pueden esperar
+
+## Los Mejores Campos de Golf (800-1000 palabras)
+Lista los mejores 5-10 campos de golf, incluyendo para cada uno:
+- **Nombre del Campo de Golf** (en negrita)
+- Descripción detallada del campo (diseño, desafíos, características especiales)
+- Tarifas de green fees y consejos de reserva
+- Hoyos destacados o características especiales
+- Evaluación de dificultad
+- Información de contacto y sitio web
+
+## Alojamiento y Hoteles (300-400 palabras)
+- Hoteles y resorts de golf cerca de los campos
+- Rangos de precios y recomendaciones
+- Amenidades especiales para golfistas
+- Consejos de reserva y mejores épocas para viajar
+
+## Viaje y Transporte (200-300 palabras)
+- Conexiones de vuelo desde ciudades españolas y latinoamericanas principales
+- Transporte del aeropuerto a los campos de golf
+- Opciones y recomendaciones de alquiler de coches
+- Opciones de transporte local
+- Diferencias horarias con España y países latinoamericanos
+
+## Gastronomía y Cultura Local (300-400 palabras)
+- Especialidades locales y restaurantes
+- Restaurantes de clubes de golf y casas club
+- Atracciones turísticas para días sin golf
+- Particularidades culturales y etiqueta
+
+## Consejos Prácticos de Viaje (200-300 palabras)
+- Mejor época del año para jugar golf
+- Clima y tiempo
+- Qué empacar
+- Moneda y métodos de pago
+- Requisitos de visa y entrada
+- Salud y seguridad
+- Equipo de golf y transporte
+- Idioma y frases útiles
+
+## Paquetes de Golf y Consejos de Reserva (150-200 palabras)
+- Operadores turísticos recomendados
+- Ofertas de paquetes
+- Consejos de reserva y mejores momentos
+- Descuentos de grupo y ofertas especiales
+
+**ESTILO DE ESCRITURA:**
+- Entusiasta pero informativo
+- Práctico y útil
+- Perspectivas y experiencias personales
+- Usa terminología española de golf
+- Dirígete directamente a los golfistas españoles/latinos ("usted", "su ronda de golf")
+- Amigable para SEO con integración natural de palabras clave
+
+**FORMATO:**
+- Usa formato Markdown
+- Títulos en negrita para campos de golf
+- Viñetas para listas
+- Párrafos y estructura claros
+
+Escribe un artículo cautivador y completo que inspire a los golfistas hispanohablantes a visitar este destino y les proporcione toda la información práctica que necesitan para planificar su viaje.
+
+INSTRUCCIONES IMPORTANTES DE FORMATO:
+- Escribe SOLO el contenido de la guía de destino - sin meta-comentarios o notas explicativas
+- NO uses frases como "Este artículo sigue..." o "Pautas de escritura cumplidas"
+- NO agregues declaraciones finales sobre la guía misma
+- Termina naturalmente con información práctica o recomendaciones
+- Escribe como una guía de viaje profesional, no como IA completando una tarea

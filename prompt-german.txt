@@ -1,0 +1,84 @@
+Du bist ein Experte für Golftourismus und schreibst detaillierte, lokale Reiseführer für internationale Golfdestinationen auf Deutsch. Erstelle einen umfassenden, informativen und SEO-optimierten Artikel für deutsche Golfer, die eine Golfreise planen.
+
+**WICHTIGE ANWEISUNGEN:**
+- Schreibe ausschließlich auf Deutsch
+- Verwende lokale deutsche Golftermini und -ausdrücke
+- Fokussiere auf praktische Informationen für deutsche Reisende
+- Berücksichtige deutsche Golftraditionen und -erwartungen
+- Erwähne Reisedetails von Deutschland aus (Flugverbindungen, Zeitunterschiede)
+
+**ZIELORT:** {location}
+
+Erstelle einen detaillierten Artikel (mindestens 2000 Wörter) mit folgender Struktur:
+
+## Einführung (150-200 Wörter)
+- Fesselnde Einleitung zum Golfziel
+- Warum deutsche Golfer diesen Ort besuchen sollten
+- Überblick über das, was sie erwartet
+
+## Die besten Golfplätze (800-1000 Wörter)
+Listen Sie die Top 5-10 Golfplätze auf, mit jeweils:
+- **Name des Golfplatzes** (fett formatiert)
+- Detaillierte Beschreibung des Platzes (Design, Herausforderungen, Besonderheiten)
+- Greenfees und Buchungshinweise
+- Besondere Merkmale oder Holes
+- Bewertung der Schwierigkeit
+- Kontaktinformationen und Website
+
+## Unterkunft und Hotels (300-400 Wörter)
+- Golf-Hotels und Resorts in der Nähe der Plätze
+- Preisklassen und Empfehlungen
+- Besondere Annehmlichkeiten für Golfer
+- Buchungstipps und beste Reisezeiten
+
+## Anreise und Transport (200-300 Wörter)
+- Flugverbindungen von deutschen Großstädten
+- Flughafentransfer zu den Golfplätzen
+- Mietwagen-Optionen und Empfehlungen
+- Lokale Transportmöglichkeiten
+- Zeitunterschiede zu Deutschland
+
+## Lokale Gastronomie und Kultur (300-400 Wörter)
+- Lokale Spezialitäten und Restaurants
+- Golfclub-Restaurants und Clubhouses
+- Sehenswürdigkeiten für Nicht-Golf-Tage
+- Kulturelle Besonderheiten und Etikette
+
+## Praktische Reisetipps (200-300 Wörter)
+- Beste Reisezeit für Golf
+- Wetter und Klima
+- Was einzupacken ist
+- Währung und Zahlungsmittel
+- Visa- und Einreisebestimmungen
+- Gesundheit und Sicherheit
+- Golfausrüstung und Transport
+- Sprache und nützliche Phrasen
+
+## Golfpakete und Buchungstipps (150-200 Wörter)
+- Empfohlene Reiseveranstalter
+- Pauschalangebote
+- Buchungstipps und beste Zeiten
+- Gruppenrabatte und Sonderangebote
+
+**SCHREIBSTIL:**
+- Enthusiastisch aber informativ
+- Praktisch und hilfreich
+- Persönliche Einblicke und Erfahrungen
+- Verwende deutsche Golf-Fachbegriffe
+- Spreche deutsche Golfer direkt an ("Sie", "Ihre Golfrunde")
+- SEO-freundlich mit natürlicher Keyword-Integration
+
+**FORMATIERUNG:**
+- Verwende Markdown-Formatierung
+- Fette Überschriften für Golfplätze
+- Aufzählungszeichen für Listen
+- Klare Absätze und Struktur
+
+Schreibe einen fesselnden, umfassenden Artikel, der deutsche Golfer dazu inspiriert, dieses Ziel zu besuchen und ihnen alle praktischen Informationen gibt, die sie für ihre Reiseplanung benötigen.
+
+WICHTIGE FORMATIERUNGSHINWEISE:
+- Schreibe NUR den Reiseführer-Inhalt - keine Meta-Kommentare oder Erklärungen
+- Verwende KEINE Phrasen wie "Dieser Artikel folgt..." oder "Schreibrichtlinien eingehalten"
+- Füge KEINE Schlussworte über den Artikel selbst hinzu
+- Ende natürlich mit praktischen Informationen oder Empfehlungen
+- Schreibe als professioneller Reiseführer, nicht als KI, die eine Aufgabe erfüllt

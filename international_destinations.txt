@@ -1,0 +1,149 @@
+# Golf Destinations for Content Generation
+# Format: City, Region/State, Country
+# One destination per line, comments start with #
+
+# Japan
+Tokyo, Tokyo, Japan
+Osaka, Osaka, Japan
+Kyoto, Kyoto, Japan
+Hiroshima, Hiroshima, Japan
+Sapporo, Hokkaido, Japan
+
+# South Korea
+Seoul, Seoul, South Korea
+Busan, Busan, South Korea
+Jeju, Jeju, South Korea
+
+# United Kingdom
+Edinburgh, Scotland, United Kingdom
+St Andrews, Scotland, United Kingdom
+London, England, United Kingdom
+Cardiff, Wales, United Kingdom
+
+# Australia
+Sydney, New South Wales, Australia
+Melbourne, Victoria, Australia
+Perth, Western Australia, Australia
+Brisbane, Queensland, Australia
+
+# Spain
+Madrid, Madrid, Spain
+Barcelona, Catalonia, Spain
+Seville, Andalusia, Spain
+Valencia, Valencia, Spain
+
+# Portugal
+Lisbon, Lisbon, Portugal
+Porto, Porto, Portugal
+Vilamoura, Faro, Portugal
+Cascais, Lisbon, Portugal
+
+# Thailand
+Bangkok, Bangkok, Thailand
+Phuket, Phuket, Thailand
+Chiang Mai, Chiang Mai, Thailand
+
+# Canada
+Toronto, Ontario, Canada
+Vancouver, British Columbia, Canada
+Calgary, Alberta, Canada
+Montreal, Quebec, Canada
+
+# Ireland
+Dublin, Dublin, Ireland
+Cork, Cork, Ireland
+Killarney, Kerry, Ireland
+
+# France
+Paris, Île-de-France, France
+Nice, Provence-Alpes-Côte d'Azur, France
+Bordeaux, Nouvelle-Aquitaine, France
+
+# Germany
+Berlin, Berlin, Germany
+Munich, Bavaria, Germany
+Hamburg, Hamburg, Germany
+
+# Netherlands
+Amsterdam, North Holland, Netherlands
+The Hague, South Holland, Netherlands
+
+# Italy
+Rome, Lazio, Italy
+Milan, Lombardy, Italy
+Florence, Tuscany, Italy
+
+# Switzerland
+Zurich, Zurich, Switzerland
+Geneva, Geneva, Switzerland
+
+# Austria
+Vienna, Vienna, Austria
+Salzburg, Salzburg, Austria
+
+# Sweden
+Stockholm, Stockholm, Sweden
+Gothenburg, Västra Götaland, Sweden
+
+# Norway
+Oslo, Oslo, Norway
+Bergen, Vestland, Norway
+
+# Denmark
+Copenhagen, Capital Region, Denmark
+
+# New Zealand
+Auckland, Auckland, New Zealand
+Wellington, Wellington, New Zealand
+Christchurch, Canterbury, New Zealand
+
+# South Africa
+Cape Town, Western Cape, South Africa
+Johannesburg, Gauteng, South Africa
+Durban, KwaZulu-Natal, South Africa
+
+# UAE
+Dubai, Dubai, United Arab Emirates
+Abu Dhabi, Abu Dhabi, United Arab Emirates
+
+# Singapore
+Singapore, Singapore, Singapore
+
+# Malaysia
+Kuala Lumpur, Kuala Lumpur, Malaysia
+
+# Philippines
+Manila, Metro Manila, Philippines
+Cebu, Cebu, Philippines
+
+# Indonesia
+Jakarta, Jakarta, Indonesia
+Bali, Bali, Indonesia
+
+# Vietnam
+Ho Chi Minh City, Ho Chi Minh City, Vietnam
+Hanoi, Hanoi, Vietnam
+
+# China
+Beijing, Beijing, China
+Shanghai, Shanghai, China
+Guangzhou, Guangdong, China
+
+# India
+Mumbai, Maharashtra, India
+Delhi, Delhi, India
+Bangalore, Karnataka, India
+
+# Argentina
+Buenos Aires, Buenos Aires, Argentina
+
+# Brazil
+São Paulo, São Paulo, Brazil
+Rio de Janeiro, Rio de Janeiro, Brazil
+
+# Chile
+Santiago, Santiago, Chile
+
+# Mexico
+Mexico City, Mexico City, Mexico
+Cancun, Quintana Roo, Mexico

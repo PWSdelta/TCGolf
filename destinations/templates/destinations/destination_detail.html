@@ -1,0 +1,1339 @@
+{% extends 'base.html' %}
+{% load destination_extras %}
+{% block content %}
+<!-- Hero Section -->
+<div class="destination-hero">
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <div class="destination-header text-center">
+          <h1 class="destination-title">{{ destination.city }}, {{ destination.country }}</h1>
+          
+          {% if destination.image_url %}
+            <div class="hero-image">
+              <img src="{{ destination.image_url }}" 
+                   class="img-fluid" 
+                   alt="{{ destination.name }}">
+            </div>
+          {% else %}
+            <div class="hero-placeholder">
+              <div class="golf-icon-large">⛳</div>
+              {% load destination_extras %}
+              <p class="explore-text">{{ destination|personalized_hero_text }}</p>
+              <div class="affiliate-space">
+                <!-- Future: Golf & travel booking widgets will go here -->
+                <!-- <p>Golf & Travel Booking Widgets Coming Soon</p> -->
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Article Content -->
+{% if article_html %}
+<div class="article-section">
+  <div class="container">
+    <div class="row">
+      <!-- Main Content -->
+      <div class="col-lg-8">
+        
+        <!-- Language Switcher -->
+        {% if available_languages|length > 1 %}
+        <div class="language-switcher mb-4">
+          <div class="language-tabs">
+            {% for lang_code in available_languages %}
+              <a href="{% language_url destination lang_code %}" 
+                 class="language-tab {% if current_language == lang_code %}active{% endif %}">
+                {{ lang_code|language_name }}
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        
+        <div class="article-content">
+          <div class="markdown-body">{{ article_html|safe }}</div>
+        </div>
+      </div>
+      
+      <!-- Sidebar with Real-time Data -->
+      <div class="col-lg-4">
+        <div class="destination-sidebar">
+          
+          <!-- Current Conditions -->
+          {% if realtime_data %}
+          <div class="sidebar-section realtime-section">
+            <h3 class="sidebar-title">
+              <span class="icon">🌐</span>
+              Current Conditions
+            </h3>
+            
+            <!-- Weather -->
+            {% if realtime_data.weather %}
+            <div class="weather-widget">
+              <div class="weather-header">
+                <span class="weather-icon">{{ realtime_data.weather.icon }}</span>
+                <div class="weather-main">
+                  <div class="temperature">
+                    <span class="temp-c">{{ realtime_data.weather.temperature_c }}°C</span>
+                    <span class="temp-f">({{ realtime_data.weather.temperature_f }}°F)</span>
+                  </div>
+                  <div class="condition">{{ realtime_data.weather.condition }}</div>
+                </div>
+              </div>
+              
+              <div class="weather-details">
+                <div class="weather-item">
+                  <span class="label">Feels like:</span>
+                  <span class="value">{{ realtime_data.weather.feels_like_c }}°C</span>
+                </div>
+                <div class="weather-item">
+                  <span class="label">Humidity:</span>
+                  <span class="value">{{ realtime_data.weather.humidity }}%</span>
+                </div>
+                <div class="weather-item">
+                  <span class="label">Wind:</span>
+                  <span class="value">{{ realtime_data.weather.wind_speed_kmh }} km/h</span>
+                </div>
+                <div class="weather-item">
+                  <span class="label">UV Index:</span>
+                  <span class="value">{{ realtime_data.weather.uv_index }}</span>
+                </div>
+                <div class="weather-item">
+                  <span class="label">Visibility:</span>
+                  <span class="value">{{ realtime_data.weather.visibility_km }} km</span>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+            
+            <!-- Time & Date -->
+            {% if realtime_data.timezone %}
+            <div class="time-widget">
+              <div class="time-header">
+                <span class="time-icon">🕐</span>
+                <div class="time-main">
+                  <div class="local-time">{{ realtime_data.timezone.local_time }}</div>
+                  <div class="local-date">{{ realtime_data.timezone.local_date }}</div>
+                </div>
+              </div>
+              <div class="time-details">
+                <div class="time-item">
+                  <span class="label">Timezone:</span>
+                  <span class="value">{{ realtime_data.timezone.timezone }}</span>
+                </div>
+                <div class="time-item">
+                  <span class="label">UTC Offset:</span>
+                  <span class="value">{{ realtime_data.timezone.utc_offset }}</span>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+            
+            <!-- Exchange Rates -->
+            {% if realtime_data.exchange %}
+            <div class="exchange-widget">
+              <div class="exchange-header">
+                <span class="exchange-icon">💱</span>
+                <div class="exchange-main">
+                  <div class="currency-name">{{ realtime_data.exchange.currency }}</div>
+                  <div class="exchange-note">Current Rates</div>
+                </div>
+              </div>
+              <div class="exchange-rates">
+                <div class="rate-item">
+                  <span class="label">1 USD =</span>
+                  <span class="value">{{ realtime_data.exchange.currency_symbol }}{{ realtime_data.exchange.usd_to_local|floatformat:2 }}</span>
+                </div>
+                {% if realtime_data.exchange.eur_to_local %}
+                <div class="rate-item">
+                  <span class="label">1 EUR =</span>
+                  <span class="value">{{ realtime_data.exchange.currency_symbol }}{{ realtime_data.exchange.eur_to_local|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+                {% if realtime_data.exchange.gbp_to_local %}
+                <div class="rate-item">
+                  <span class="label">1 GBP =</span>
+                  <span class="value">{{ realtime_data.exchange.currency_symbol }}{{ realtime_data.exchange.gbp_to_local|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+              </div>
+              <div class="exchange-updated">
+                <small>Updated: {{ realtime_data.exchange.last_updated }}</small>
+              </div>
+            </div>
+            {% endif %}
+            
+            <div class="realtime-footer">
+              <small class="text-muted">
+                <span class="icon">🔄</span>
+                Data updates automatically
+              </small>
+            </div>
+          </div>
+          {% endif %}
+          
+          <!-- Quick Info -->
+          <div class="sidebar-section quick-info">
+            <h3 class="sidebar-title">
+              <span class="icon">ℹ️</span>
+              Quick Info
+            </h3>
+            <div class="info-items">
+              <div class="info-item">
+                <span class="label">City:</span>
+                <span class="value">{{ destination.city }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Region:</span>
+                <span class="value">{{ destination.region_or_state }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Country:</span>
+                <span class="value">{{ destination.country }}</span>
+              </div>
+              {% if destination.latitude and destination.longitude %}
+              <div class="info-item">
+                <span class="label">Coordinates:</span>
+                <span class="value">{{ destination.latitude|floatformat:3 }}, {{ destination.longitude|floatformat:3 }}</span>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          
+          <!-- Available Languages -->
+          {% if available_languages|length > 1 %}
+          <div class="sidebar-section languages-info">
+            <h3 class="sidebar-title">
+              <span class="icon">🌍</span>
+              Available Languages
+            </h3>
+            <div class="language-list">
+              {% for lang_code in available_languages %}
+                <a href="{% language_url destination lang_code %}" 
+                   class="language-link {% if current_language == lang_code %}active{% endif %}">
+                  {{ lang_code|language_name }}
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Recommendations Section -->
+<div class="recommendations-section">
+  <div class="container">
+    
+    <!-- Nearby Destinations -->
+    {% if nearby_destinations %}
+    <div class="recommendation-block">
+      <h2 class="section-title">
+        <span class="icon">🌍</span>
+        More in {{ destination.region_or_state }}
+      </h2>
+      <div class="destinations-grid mini">
+        {% for dest in nearby_destinations %}
+          <a href="{{ dest.get_absolute_url }}" class="mini-destination-card">
+            <div class="mini-card-content">
+              <div class="mini-icon">⛳</div>
+              <h4>{{ dest.name }}</h4>
+              <p>{{ dest.city }}</p>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Same Country -->
+    {% if same_country_destinations %}
+    <div class="recommendation-block">
+      <h2 class="section-title">
+        <span class="icon">🏴</span>
+        More in {{ destination.country }}
+      </h2>
+      <div class="destinations-grid mini">
+        {% for dest in same_country_destinations %}
+          <a href="{{ dest.get_absolute_url }}" class="mini-destination-card">
+            <div class="mini-card-content">
+              <div class="mini-icon">⛳</div>
+              <h4>{{ dest.name }}</h4>
+              <p>{{ dest.city }}, {{ dest.region_or_state }}</p>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Popular Destinations -->
+    {% if popular_destinations %}
+    <div class="recommendation-block">
+      <h2 class="section-title">
+        <span class="icon">⭐</span>
+        Popular Golf Destinations
+      </h2>
+      <div class="destinations-grid popular">
+        {% for dest in popular_destinations %}
+          <a href="{{ dest.get_absolute_url }}" class="popular-destination-card">
+            <div class="popular-card-content">
+              <div class="card-icon">⛳</div>
+              <div class="card-details">
+                <h4>{{ dest.name }}</h4>
+                <p>{{ dest.city }}, {{ dest.region_or_state }}</p>
+                <span class="country">{{ dest.country }}</span>
+              </div>
+              <div class="travel-arrow">✈️</div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Call to Action -->
+    <div class="cta-section">
+      <div class="cta-content">
+        <h2>Ready to Explore More Golf Destinations?</h2>
+        <p>Discover amazing golf courses and destinations around the world</p>
+        <a href="/" class="cta-button">
+          🌍 Browse All Destinations
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  /* Hero Section */
+  .destination-hero {
+    background: linear-gradient(135deg, var(--golf-green) 0%, #3e8e41 100%);
+    color: white;
+    min-height: 40vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 3rem;
+  }
+  
+  .destination-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="70" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="70" cy="80" r="2.5" fill="rgba(255,255,255,0.1)"/><circle cx="10" cy="60" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="20" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+    opacity: 0.3;
+  }
+  
+  .destination-title {
+    color: white;
+    font-weight: 800;
+    font-size: 3.5rem;
+    margin-bottom: 2rem;
+    text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    position: relative;
+    z-index: 1;
+  }
+  
+  .hero-placeholder {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 25px;
+    padding: 3rem 2rem;
+    margin-top: 2rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+  }
+  
+  .golf-icon-large {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+  }
+  
+  .explore-text {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.9;
+    font-weight: 500;
+  }
+  
+  .affiliate-space {
+    min-height: 20px;
+    /* border: 2px dashed rgba(255, 255, 255, 0.3); */
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+    position: relative;
+    /* Hide until we activate booking widgets */
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+  }
+  
+  /* Commented out until booking widgets are ready
+  .affiliate-space::after {
+    content: "Golf & Travel Booking Widgets Coming Soon";
+    font-size: 0.9rem;
+  }
+  */
+  
+  .hero-image img {
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+  }
+  
+  .hero-placeholder {
+    background: linear-gradient(135deg, var(--golf-light-green) 0%, var(--golf-green) 100%);
+    border-radius: 20px;
+    padding: 4rem 2rem;
+    color: white;
+    text-align: center;
+  }
+  
+  .golf-icon-large {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+  }
+  
+  .explore-text {
+    font-size: 1.2rem;
+    margin: 0;
+    opacity: 0.9;
+  }
+  
+  /* Article Section */
+  .article-section {
+    margin-bottom: 4rem;
+  }
+  
+  .article-content .markdown-body {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    padding: 2rem;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+  }
+  
+  .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+    color: var(--golf-dark);
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .markdown-body h1 {
+    border-bottom: 3px solid var(--golf-green);
+    padding-bottom: 0.5rem;
+  }
+  
+  .markdown-body h2 {
+    border-bottom: 2px solid var(--golf-light-green);
+    padding-bottom: 0.3rem;
+  }
+  
+  .markdown-body table {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  
+  .markdown-body table th {
+    background: var(--golf-green);
+    color: white;
+    font-weight: 600;
+  }
+  
+  .markdown-body table td, .markdown-body table th {
+    padding: 1rem;
+    border: none;
+  }
+  
+  .markdown-body table tr:nth-child(even) {
+    background: var(--golf-cream);
+  }
+  
+  .markdown-body a {
+    color: var(--golf-green);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  
+  .markdown-body a:hover {
+    color: var(--golf-dark);
+    text-decoration: underline;
+  }
+  
+  .markdown-body blockquote {
+    border-left: 4px solid var(--golf-green);
+    background: var(--golf-cream);
+    border-radius: 0 10px 10px 0;
+  }
+  
+  .markdown-body ul, .markdown-body ol {
+    margin-left: 1.5rem;
+  }
+  
+  .markdown-body li {
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Recommendations Section */
+  .recommendations-section {
+    background: var(--golf-cream);
+    padding: 4rem 0;
+  }
+  
+  .recommendation-block {
+    margin-bottom: 3rem;
+  }
+  
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--golf-dark);
+    font-weight: 700;
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    justify-content: center;
+  }
+  
+  .section-title .icon {
+    font-size: 1.5rem;
+  }
+  
+  /* Mini Cards */
+  .destinations-grid.mini {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .mini-destination-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    text-align: center;
+  }
+  
+  .mini-destination-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  .mini-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .mini-destination-card h4 {
+    color: var(--golf-dark);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+  }
+  
+  .mini-destination-card p {
+    color: #666;
+    margin: 0;
+    font-size: 0.9rem;
+  }
+  
+  /* Popular Cards */
+  .destinations-grid.popular {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .popular-destination-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .popular-destination-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  .card-icon {
+    font-size: 2rem;
+    opacity: 0.8;
+  }
+  
+  .card-details {
+    flex-grow: 1;
+  }
+  
+  .card-details h4 {
+    color: var(--golf-dark);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    font-size: 1.2rem;
+  }
+  
+  .card-details p {
+    color: #666;
+    margin: 0;
+    font-size: 0.9rem;
+  }
+  
+  .card-details .country {
+    color: var(--golf-green);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .travel-arrow {
+    font-size: 1.5rem;
+    opacity: 0.6;
+    transition: all 0.3s ease;
+  }
+  
+  .popular-destination-card:hover .travel-arrow {
+    opacity: 1;
+    transform: translateX(5px);
+  }
+  
+  /* CTA Section */
+  .cta-section {
+    text-align: center;
+    margin-top: 4rem;
+    padding: 3rem 2rem;
+    background: linear-gradient(135deg, var(--golf-green) 0%, var(--golf-light-green) 100%);
+    border-radius: 20px;
+    color: white;
+  }
+  
+  .cta-content h2 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+  
+  .cta-content p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin-bottom: 2rem;
+  }
+  
+  .cta-button {
+    background: white;
+    color: var(--golf-green);
+    padding: 1rem 2.5rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  }
+  
+  .cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    text-decoration: none;
+    color: var(--golf-green);
+  }
+  
+  /* Language Switcher */
+  .language-switcher {
+    border-bottom: 2px solid var(--golf-cream);
+    margin-bottom: 2rem;
+  }
+  
+  .language-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    background: var(--golf-cream);
+    border-radius: 15px 15px 0 0;
+    padding: 0.5rem;
+    margin-bottom: -2px;
+  }
+  
+  .language-tab {
+    flex: 1;
+    text-align: center;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    color: var(--golf-dark);
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    min-width: 120px;
+  }
+  
+  .language-tab:hover {
+    background: white;
+    color: var(--golf-green);
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .language-tab.active {
+    background: var(--golf-green);
+    color: white;
+    border-color: var(--golf-dark-green);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+  }
+  
+  .language-tab.active:hover {
+    background: var(--golf-dark-green);
+    color: white;
+    transform: translateY(-1px);
+  }
+  
+  @media (max-width: 768px) {
+    .language-tabs {
+      flex-direction: column;
+    }
+    
+    .language-tab {
+      min-width: auto;
+      margin-bottom: 0.25rem;
+    }
+    
+    .language-tab:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .destination-title { font-size: 2rem; }
+    .destination-meta { flex-direction: column; gap: 1rem; }
+    .destinations-grid.mini { grid-template-columns: 1fr; }
+    .destinations-grid.popular { grid-template-columns: 1fr; }
+    .popular-destination-card { flex-direction: column; text-align: center; }
+  }
+  
+  .markdown-body h1 {
+    border-bottom: 3px solid var(--golf-green);
+    padding-bottom: 0.5rem;
+  }
+  
+  .markdown-body h2 {
+    border-bottom: 2px solid var(--golf-light-green);
+    padding-bottom: 0.3rem;
+  }
+  
+  .markdown-body table {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  
+  .markdown-body table th {
+    background: var(--golf-green);
+    color: white;
+    font-weight: 600;
+  }
+  
+  .markdown-body table td, .markdown-body table th {
+    padding: 1rem;
+    border: none;
+  }
+  
+  .markdown-body table tr:nth-child(even) {
+    background: var(--golf-cream);
+  }
+  
+  .markdown-body a {
+    color: var(--golf-green);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  
+  .markdown-body a:hover {
+    color: var(--golf-dark);
+    text-decoration: underline;
+  }
+  
+  .markdown-body blockquote {
+    border-left: 4px solid var(--golf-green);
+    background: var(--golf-cream);
+    border-radius: 0 10px 10px 0;
+  }
+  
+  .markdown-body ul, .markdown-body ol {
+    margin-left: 1.5rem;
+  }
+  
+  .markdown-body li {
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Hero Section */
+  .destination-hero {
+    background: linear-gradient(135deg, var(--golf-green) 0%, #3e8e41 100%);
+    color: white;
+    min-height: 40vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .destination-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="70" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="70" cy="80" r="2.5" fill="rgba(255,255,255,0.1)"/><circle cx="10" cy="60" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="20" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+    opacity: 0.3;
+  }
+  
+  .destination-title {
+    font-weight: 800;
+    font-size: 3.5rem;
+    margin-bottom: 2rem;
+    text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    position: relative;
+    z-index: 1;
+  }
+  
+  .hero-placeholder {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 25px;
+    padding: 3rem 2rem;
+    margin-top: 2rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+  }
+  
+  .golf-icon-large {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+  }
+  
+  .explore-text {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.9;
+    font-weight: 500;
+  }
+  
+  /* Sidebar Styling */
+  .destination-sidebar {
+    position: sticky;
+    top: 2rem;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+  }
+  
+  .sidebar-section {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    border: 1px solid rgba(47, 121, 71, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .sidebar-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.12);
+  }
+  
+  .sidebar-section.realtime-section {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fffe 100%);
+    border: 2px solid rgba(47, 121, 71, 0.15);
+  }
+  
+  .sidebar-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--golf-green);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--golf-cream);
+  }
+  
+  .sidebar-title .icon {
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
+  }
+  
+  /* Weather Widget */
+  .weather-widget {
+    margin-bottom: 2rem;
+  }
+  
+  .weather-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #e3f2fd 0%, #f0f8ff 100%);
+    border-radius: 15px;
+    border: 1px solid rgba(33, 150, 243, 0.2);
+  }
+  
+  .weather-icon {
+    font-size: 3rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+  }
+  
+  .weather-main .temperature {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--golf-green);
+    margin-bottom: 0.25rem;
+  }
+  
+  .weather-main .temp-f {
+    font-size: 1.1rem;
+    color: #666;
+    margin-left: 0.5rem;
+    font-weight: 500;
+  }
+  
+  .weather-main .condition {
+    font-size: 1rem;
+    color: #555;
+    text-transform: capitalize;
+    font-weight: 500;
+  }
+  
+  .weather-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  
+  .weather-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(47, 121, 71, 0.05);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    border: 1px solid rgba(47, 121, 71, 0.1);
+    transition: background 0.3s ease;
+  }
+  
+  .weather-item:hover {
+    background: rgba(47, 121, 71, 0.1);
+  }
+  
+  .weather-item .label {
+    color: #666;
+    font-weight: 500;
+  }
+  
+  .weather-item .value {
+    font-weight: 700;
+    color: var(--golf-green);
+  }
+  
+  /* Time Widget */
+  .time-widget {
+    margin-bottom: 2rem;
+  }
+  
+  .time-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #fff3e0 0%, #fff8f0 100%);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 152, 0, 0.2);
+  }
+  
+  .time-icon {
+    font-size: 3rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+  }
+  
+  .time-main .local-time {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--golf-green);
+    font-family: 'Monaco', 'Consolas', monospace;
+    margin-bottom: 0.25rem;
+  }
+  
+  .time-main .local-date {
+    font-size: 1rem;
+    color: #555;
+    font-weight: 500;
+  }
+  
+  .time-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .time-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(47, 121, 71, 0.05);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    border: 1px solid rgba(47, 121, 71, 0.1);
+    transition: background 0.3s ease;
+  }
+  
+  .time-item:hover {
+    background: rgba(47, 121, 71, 0.1);
+  }
+  
+  .time-item .label {
+    color: #666;
+    font-weight: 500;
+  }
+  
+  .time-item .value {
+    font-weight: 700;
+    color: var(--golf-green);
+  }
+  
+  /* Exchange Widget */
+  .exchange-widget {
+    margin-bottom: 2rem;
+  }
+  
+  .exchange-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f3e5f5 0%, #faf0fc 100%);
+    border-radius: 15px;
+    border: 1px solid rgba(156, 39, 176, 0.2);
+  }
+  
+  .exchange-icon {
+    font-size: 3rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+  }
+  
+  .exchange-main .currency-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--golf-green);
+    margin-bottom: 0.25rem;
+  }
+  
+  .exchange-main .exchange-note {
+    font-size: 1rem;
+    color: #555;
+    font-weight: 500;
+  }
+  
+  .exchange-rates {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .rate-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem;
+    background: rgba(47, 121, 71, 0.05);
+    border-radius: 10px;
+    font-size: 1rem;
+    border: 1px solid rgba(47, 121, 71, 0.1);
+    transition: background 0.3s ease, transform 0.3s ease;
+  }
+  
+  .rate-item:hover {
+    background: rgba(47, 121, 71, 0.1);
+    transform: translateX(5px);
+  }
+  
+  .rate-item .label {
+    color: #666;
+    font-weight: 600;
+  }
+  
+  .rate-item .value {
+    font-weight: 700;
+    color: var(--golf-green);
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 1.1rem;
+  }
+  
+  .exchange-updated {
+    text-align: center;
+    color: #888;
+    font-size: 0.85rem;
+    padding: 0.75rem;
+    background: rgba(0,0,0,0.03);
+    border-radius: 8px;
+    font-style: italic;
+  }
+  
+  /* Real-time Footer */
+  .realtime-footer {
+    text-align: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--golf-cream);
+  }
+  
+  .realtime-footer .icon {
+    margin-right: 0.25rem;
+  }
+  
+  /* Quick Info */
+  .info-items {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    background: rgba(47, 121, 71, 0.05);
+    border-radius: 12px;
+    font-size: 0.95rem;
+    border: 1px solid rgba(47, 121, 71, 0.1);
+    transition: background 0.3s ease, transform 0.3s ease;
+  }
+  
+  .info-item:hover {
+    background: rgba(47, 121, 71, 0.1);
+    transform: translateX(5px);
+  }
+  
+  .info-item .label {
+    color: #666;
+    font-weight: 600;
+  }
+  
+  .info-item .value {
+    font-weight: 700;
+    color: var(--golf-green);
+  }
+  
+  /* Language Links in Sidebar */
+  .language-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .language-link {
+    padding: 1rem 1.25rem;
+    background: rgba(47, 121, 71, 0.05);
+    border-radius: 12px;
+    text-decoration: none;
+    color: #666;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-align: center;
+    border: 1px solid rgba(47, 121, 71, 0.1);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .language-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(47, 121, 71, 0.1), transparent);
+    transition: left 0.5s;
+  }
+  
+  .language-link:hover::before {
+    left: 100%;
+  }
+  
+  .language-link:hover {
+    background: var(--golf-green);
+    color: white;
+    text-decoration: none;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(47, 121, 71, 0.3);
+  }
+  
+  .language-link.active {
+    background: var(--golf-green);
+    color: white;
+    box-shadow: 0 4px 12px rgba(47, 121, 71, 0.25);
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 992px) {
+    .destination-sidebar {
+      position: static;
+      margin-top: 3rem;
+    }
+    
+    .sidebar-section {
+      padding: 1.5rem;
+    }
+    
+    .weather-header, .time-header, .exchange-header {
+      padding: 1.25rem;
+      gap: 1rem;
+    }
+    
+    .weather-icon, .time-icon, .exchange-icon {
+      font-size: 2.5rem;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .destination-title {
+      font-size: 2.5rem;
+    }
+    
+    .hero-placeholder {
+      padding: 2rem 1.5rem;
+    }
+    
+    .golf-icon-large {
+      font-size: 3rem;
+    }
+    
+    .explore-text {
+      font-size: 1.1rem;
+    }
+    
+    .affiliate-space {
+      min-height: 0px;
+    }
+    
+    /* Commented out until booking widgets are ready
+    .affiliate-space::after {
+      font-size: 0.8rem;
+    }
+    */
+    
+    .weather-header, .time-header, .exchange-header {
+      flex-direction: column;
+      text-align: center;
+      gap: 1rem;
+      padding: 1.5rem;
+    }
+    
+    .weather-details {
+      grid-template-columns: 1fr;
+    }
+    
+    .weather-main .temperature {
+      font-size: 1.6rem;
+    }
+    
+    .time-main .local-time {
+      font-size: 1.8rem;
+    }
+    
+    .exchange-main .currency-name {
+      font-size: 1.3rem;
+    }
+    
+    .sidebar-section {
+      margin-bottom: 1.5rem;
+      padding: 1.25rem;
+    }
+    
+    .sidebar-title {
+      font-size: 1.2rem;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .destination-title {
+      font-size: 2rem;
+    }
+    
+    .hero-placeholder {
+      padding: 1.5rem 1rem;
+    }
+    
+    .golf-icon-large {
+      font-size: 2.5rem;
+    }
+    
+    .explore-text {
+      font-size: 1rem;
+    }
+    
+    .weather-header, .time-header, .exchange-header {
+      padding: 1.25rem;
+    }
+    
+    .sidebar-section {
+      padding: 1rem;
+    }
+  }
+</style>
+{% endblock %}

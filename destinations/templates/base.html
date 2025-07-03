@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Golf Destination Explorer</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.1/github-markdown-light.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --golf-green: #2d5a27;
+      --golf-light-green: #4a7c59;
+      --golf-gold: #d4af37;
+      --golf-cream: #f8f6f0;
+      --golf-dark: #1a3d1a;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--golf-cream);
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    .navbar {
+      background: linear-gradient(135deg, var(--golf-dark) 0%, var(--golf-green) 100%) !important;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .navbar-brand {
+      font-weight: 600;
+      font-size: 1.4rem;
+      color: white !important;
+    }
+    
+    .hero-section {
+      background: linear-gradient(135deg, var(--golf-green) 0%, var(--golf-light-green) 50%, var(--golf-gold) 100%);
+      color: white;
+      padding: 4rem 0;
+      margin-bottom: 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .hero-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="white" opacity="0.1"/></svg>');
+      background-size: 50px 50px;
+      animation: float 20s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateX(0) translateY(0); }
+      50% { transform: translateX(20px) translateY(-10px); }
+    }
+    
+    .hero-title {
+      font-size: 3.5rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      position: relative;
+      z-index: 1;
+    }
+    
+    .hero-subtitle {
+      font-size: 1.3rem;
+      opacity: 0.95;
+      margin-bottom: 2rem;
+      position: relative;
+      z-index: 1;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .search-container {
+      background: white;
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+      margin-bottom: 3rem;
+      border: 1px solid rgba(45, 90, 39, 0.1);
+    }
+    
+    .search-input {
+      border: 2px solid #e9ecef;
+      border-radius: 15px;
+      padding: 1rem 1.5rem;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      background: #fafafa;
+    }
+    
+    .search-input:focus {
+      border-color: var(--golf-green);
+      box-shadow: 0 0 0 0.3rem rgba(45, 90, 39, 0.15);
+      background: white;
+      transform: translateY(-2px);
+    }
+    
+    .search-btn {
+      background: linear-gradient(135deg, var(--golf-green) 0%, var(--golf-light-green) 100%);
+      border: none;
+      border-radius: 15px;
+      padding: 1rem 2.5rem;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(45, 90, 39, 0.3);
+    }
+    
+    .search-btn:hover {
+      background: linear-gradient(135deg, var(--golf-dark) 0%, var(--golf-green) 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(45, 90, 39, 0.4);
+    }
+    
+    .map-container {
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+      margin-bottom: 4rem;
+      border: 1px solid rgba(45, 90, 39, 0.1);
+      position: relative;
+    }
+    
+    .map-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--golf-green), var(--golf-gold), var(--golf-green));
+      z-index: 1000;
+    }
+    
+    .destinations-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 2rem;
+    }
+    
+    .destination-card-link {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    
+    .destination-card {
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: 1px solid rgba(45, 90, 39, 0.1);
+      position: relative;
+      min-height: 280px;
+      cursor: pointer;
+    }
+    
+    .destination-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--golf-green), var(--golf-gold));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .destination-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    }
+    
+    .destination-card:hover::before {
+      opacity: 1;
+    }
+    
+    .image-placeholder {
+      width: 100%;
+      height: 200px;
+      background: linear-gradient(135deg, var(--golf-cream) 0%, #e8f5e8 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .golf-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.7;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    
+    .destination-card:hover .golf-icon {
+      transform: scale(1.1);
+      opacity: 1;
+    }
+    
+    .travel-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      font-size: 2.5rem;
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    
+    .destination-card:hover .travel-icon {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+    
+    .destination-card:hover .golf-icon {
+      transform: scale(0.8);
+      opacity: 0.3;
+    }
+    
+    .travel-message {
+      position: absolute;
+      bottom: -2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--golf-green);
+      font-size: 0.8rem;
+      font-weight: 600;
+      opacity: 0;
+      transition: all 0.3s ease 0.1s;
+      text-align: center;
+      white-space: nowrap;
+    }
+    
+    .destination-card:hover .travel-message {
+      opacity: 1;
+      bottom: -1.5rem;
+    }
+    
+    .destination-preview {
+      text-align: center;
+      padding: 0 1rem;
+    }
+    
+    .destination-name {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--golf-dark);
+      margin: 0 0 0.5rem 0;
+      line-height: 1.2;
+    }
+    
+    .destination-location {
+      font-size: 0.95rem;
+      color: #666;
+      margin: 0 0 0.5rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+    }
+    
+    .location-icon {
+      font-size: 0.9rem;
+    }
+    
+    .destination-country {
+      font-size: 0.85rem;
+      color: var(--golf-green);
+      font-weight: 600;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .card-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(45, 90, 39, 0.9), transparent);
+      padding: 1rem;
+      transform: translateY(100%);
+      transition: all 0.3s ease;
+    }
+    
+    .destination-card:hover .card-overlay {
+      transform: translateY(0);
+    }
+    
+    .view-details {
+      color: white;
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    
+    .markdown-body { 
+      box-sizing: border-box; 
+      min-width: 200px; 
+      max-width: 100%; 
+      margin: 0 auto; 
+      padding: 20px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    .back-btn {
+      background: var(--golf-green);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 0.5rem 1.5rem;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+    }
+    
+    .back-btn:hover {
+      background: var(--golf-dark);
+      color: white;
+      transform: translateY(-1px);
+    }
+    
+    .footer {
+      background: var(--golf-dark);
+      color: white;
+      margin-top: 4rem;
+    }
+    
+    @media (max-width: 768px) {
+      .hero-title { font-size: 2.5rem; }
+      .destinations-grid { 
+        grid-template-columns: 1fr; 
+        gap: 1.5rem;
+      }
+      .search-container { 
+        margin: 1rem; 
+        padding: 1.5rem;
+      }
+      .search-input {
+        margin-bottom: 1rem;
+      }
+    }
+    
+    /* Loading animation */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Smooth scrolling */
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: var(--golf-cream);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--golf-green);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--golf-dark);
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg">
+    <div class="container">
+      <a class="navbar-brand" href="/">⛳ Golf Destination Explorer</a>
+    </div>
+  </nav>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="footer py-4">
+    <div class="container text-center">
+      <span>&copy; {{ now|date:'Y' }} Golf Destination Explorer</span>
+    </div>
+  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

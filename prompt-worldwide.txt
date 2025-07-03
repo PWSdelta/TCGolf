@@ -1,0 +1,120 @@
+Write an authoritative, locally-informed golf course guide for {city}, {region}, {country}. Structure as a comprehensive resource that both visiting international golfers and locals would bookmark.
+Required Sections:
+Course Rankings & Reviews
+
+Top 7 Public/Semi-Private Courses: Include signature holes, notable features, and what makes each unique in the local context
+Hidden Gems: 2-3 lesser-known courses that offer exceptional value or authentic local experience
+Premium Options: Upscale resort courses, championship venues, or exclusive daily-fee facilities worth the investment
+Value Champions: Best courses for budget-conscious golfers, including local currency considerations
+
+International Golfer Essentials
+
+Difficulty & Standards: Course ratings using both local and international handicap systems, with USGA/R&A slope comparisons where applicable
+Language Considerations: English proficiency at courses, key golf terms in local language, and communication tips
+Cultural Golf Etiquette: Local customs, dress codes, pace of play expectations, and tipping practices
+Booking Requirements: Advance reservation systems, required documentation, and guest policies
+
+Seasonal & Climate Intelligence
+
+Monthly Playing Guide: Detailed weather patterns, rainfall, temperature ranges, and optimal playing conditions
+Peak Season Strategy: High-demand periods, pricing fluctuations, and advance booking timelines
+Off-Season Opportunities: Shoulder season advantages, reduced rates, and fewer crowds
+Weather Contingencies: Indoor facilities, covered ranges, and alternative activities
+
+Practical Travel Integration
+
+Access & Transportation: Airport proximity, rental car requirements, public transport options, and taxi/ride-share availability
+Accommodation Partnerships: Stay-and-play packages, nearby hotels, and golf resort options
+Multi-Course Planning: Logical routing for golf trips, distance between courses, and recommended itineraries
+Equipment Considerations: Club rental quality/availability, shipping options, and local pro shop standards
+
+Financial & Legal Framework
+
+Pricing Structure: Green fees in local currency with USD/EUR equivalents, cart fees, caddie costs, and mandatory charges
+Payment Methods: Accepted cards, cash requirements, and currency exchange considerations
+Visitor Documentation: Required identification, guest certificates, and any permit requirements
+Insurance & Liability: Local golf insurance options and coverage recommendations
+
+Cultural & Regional Context
+
+Golf Heritage: Local golf history, traditional playing styles, and cultural significance
+Architectural Identity: Prominent course designers, regional design influences, and signature features
+Tournament Legacy: Historic events, professional tournaments, and championship pedigree
+Local Golf Community: Clubs, societies, visitor welcome programs, and networking opportunities
+
+Insider Local Knowledge
+
+Equipment & Services: Best pro shops, club fitting, repair services, and equipment rental
+Dining & Entertainment: On-course restaurants, clubhouse experiences, and recommended post-round venues
+Professional Services: Teaching professionals, caddie programs, and lesson availability
+Practice Facilities: Driving ranges, short game areas, and practice round opportunities
+
+Logistical Mastery
+
+Dress Code Specifics: Required attire, local interpretations, and recommended golf wear for climate
+Technology Integration: GPS availability, mobile apps, and course technology features
+Group & Corporate Golf: Event planning services, tournament facilities, and business golf culture
+Accessibility Services: Facilities for golfers with disabilities and adaptive equipment availability
+
+Enhanced International Features:
+Cross-Cultural Golf Guide
+
+Communication Essentials: Key phrases in local language, golf terminology, and etiquette expressions
+Business Golf Protocol: Local customs for corporate golf, gift-giving practices, and relationship building
+Social Integration: How to connect with local golfers, visitor programs, and community integration
+
+Travel Optimization
+
+Visa & Entry Requirements: Golf-specific travel considerations and documentation needs
+Time Zone Management: Jet lag considerations for tee times and optimal playing schedules
+Health & Safety: Local medical facilities, travel insurance, and emergency procedures
+Customs & Regulations: Equipment import rules, duty considerations, and travel restrictions
+
+Economic Intelligence
+
+Cost Comparison Framework: Value assessment vs. home country pricing and international golf destinations
+Local Economic Factors: Tipping culture, service charges, and additional fee structures
+Currency Strategies: Best exchange practices, payment timing, and budget planning
+
+Regional Golf Ecosystem
+
+Nearby Golf Destinations: Day trip options, extended itinerary possibilities, and regional golf trails
+Seasonal Migration Patterns: Understanding when international golfers typically visit
+Climate Adaptation: Equipment adjustments for local conditions and weather patterns
+
+Writing Guidelines:
+
+Target Length: 2500-3000 words for comprehensive international coverage
+Cultural Sensitivity: Respectful acknowledgment of local customs and traditions
+Practical Authority: Demonstrate deep understanding of both golf and local culture
+International Accessibility: Clear explanations of systems that may differ from visitors' home countries
+Current Relevance: Include recent developments, COVID-related changes, and updated policies
+Multi-Audience Appeal: Serve both serious traveling golfers and international residents
+
+Special International Considerations:
+Golfer Preparation Profiles
+
+First-Time International Golfers: Essential preparation and expectation management
+Experienced Golf Travelers: Advanced insights and hidden opportunities
+Extended Stay Visitors: Resources for longer-term golf experiences
+
+Seasonal Pricing Intelligence
+
+Dynamic Pricing Patterns: How rates fluctuate with local and international demand
+Package Deal Optimization: Best value combinations and strategic booking timing
+Group Booking Advantages: Discounts and special arrangements for traveling parties
+
+Emergency & Backup Planning
+
+Weather Alternatives: Indoor facilities, simulator options, and rainy day activities
+Equipment Failures: Local repair services, emergency rentals, and replacement options
+Health & Medical: Golf-related injury care and medical facility access
+
+Create the definitive international golf resource for {city}, {country} - content that gets recommended in golf travel forums, saved by golf tour operators, and referenced by international golf communities. The guide should bridge cultural gaps while providing the practical intelligence needed for successful golf travel.
+
+IMPORTANT FORMATTING INSTRUCTIONS:
+- Write ONLY the destination guide content - no meta-commentary, explanatory notes, or acknowledgments
+- Do NOT include phrases like "Writing Guidelines adhered to" or "This document follows..."
+- Do NOT add closing statements about the guide itself
+- End naturally with practical information or recommendations
+- Write as a professional travel guide, not as an AI completing an assignment
