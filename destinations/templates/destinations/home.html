@@ -3,6 +3,48 @@
 {% load cache %}
 {% load destination_extras %}
 
+{% block title %}Golf Destination Explorer - Discover the World's Best Golf Courses & Destinations{% endblock %}
+
+{% block meta_description %}Discover amazing golf destinations worldwide. Explore detailed guides for top golf courses, resorts, and travel destinations. Find your perfect golf vacation with insider tips and comprehensive information.{% endblock %}
+
+{% block meta_keywords %}golf destinations, golf courses, golf travel, golf resorts, golf vacation, golf guides, best golf courses, golf tourism, golf trips, golf holidays{% endblock %}
+
+{% block structured_data %}
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Golf Destination Explorer",
+  "description": "Discover amazing golf destinations worldwide with detailed guides and insider tips",
+  "url": "{{ request.scheme }}://{{ request.get_host }}",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "{{ request.scheme }}://{{ request.get_host }}/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  },
+  "mainEntity": {
+    "@type": "ItemList",
+    "name": "Golf Destinations",
+    "description": "Collection of world-class golf destinations and courses",
+    "numberOfItems": {{ destinations|length }},
+    "itemListElement": [
+      {% for destination in destinations|slice:":10" %}
+      {
+        "@type": "Place",
+        "name": "{{ destination.name }}",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "{{ destination.city }}",
+          "addressRegion": "{{ destination.region_or_state }}",
+          "addressCountry": "{{ destination.country }}"
+        },
+        "url": "{{ request.scheme }}://{{ request.get_host }}{{ destination.get_absolute_url }}"
+      }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+}
+{% endblock %}
+
 {% block content %}
 <div class="hero-section">
   <div class="container text-center">

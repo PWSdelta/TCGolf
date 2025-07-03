@@ -3,7 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Golf Destination Explorer</title>
+  
+  <!-- SEO Meta Tags -->
+  <title>{% block title %}Golf Destination Explorer - Discover Amazing Golf Courses Worldwide{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Explore the world's finest golf courses and destinations with detailed guides, insider tips, and comprehensive information about top golf locations worldwide.{% endblock %}">
+  <meta name="keywords" content="{% block meta_keywords %}golf destinations, golf courses, golf travel, golf resorts, golf vacation, golf guides, golf tips{% endblock %}">
+  <meta name="author" content="Golf Destination Explorer">
+  <meta name="robots" content="index, follow">
+  
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="{% block og_title %}{% block title %}Golf Destination Explorer - Discover Amazing Golf Courses Worldwide{% endblock %}{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}{% block meta_description %}Explore the world's finest golf courses and destinations with detailed guides, insider tips, and comprehensive information about top golf locations worldwide.{% endblock %}{% endblock %}">
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+  <meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}">
+  <meta property="og:image" content="{% block og_image %}{% load static %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/golf-og-image.jpg' %}{% endblock %}">
+  <meta property="og:site_name" content="Golf Destination Explorer">
+  
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{% block twitter_title %}{% block og_title %}{% block title %}Golf Destination Explorer - Discover Amazing Golf Courses Worldwide{% endblock %}{% endblock %}{% endblock %}">
+  <meta name="twitter:description" content="{% block twitter_description %}{% block og_description %}{% block meta_description %}Explore the world's finest golf courses and destinations with detailed guides, insider tips, and comprehensive information about top golf locations worldwide.{% endblock %}{% endblock %}{% endblock %}">
+  <meta name="twitter:image" content="{% block twitter_image %}{% block og_image %}{% load static %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/golf-og-image.jpg' %}{% endblock %}{% endblock %}">
+  
+  <!-- Canonical URL -->
+  <link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}">
+  
+  <!-- Schema.org Structured Data -->
+  <script type="application/ld+json">
+  {% block structured_data %}
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Golf Destination Explorer",
+    "description": "Explore the world's finest golf courses and destinations with detailed guides and insider tips",
+    "url": "{{ request.scheme }}://{{ request.get_host }}",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "{{ request.scheme }}://{{ request.get_host }}/?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  {% endblock %}
+  </script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.1/github-markdown-light.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -340,6 +381,36 @@
       background: var(--golf-dark);
       color: white;
       transform: translateY(-1px);
+    }
+    
+    /* Breadcrumbs */
+    .breadcrumb {
+      background: transparent;
+      margin-bottom: 0;
+      padding: 0;
+      font-size: 0.9rem;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+      content: "›";
+      color: var(--golf-green);
+      font-weight: 600;
+    }
+    
+    .breadcrumb-item a {
+      color: var(--golf-green);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    
+    .breadcrumb-item a:hover {
+      color: var(--golf-dark);
+      text-decoration: underline;
+    }
+    
+    .breadcrumb-item.active {
+      color: var(--golf-dark);
+      font-weight: 500;
     }
     
     .footer {
