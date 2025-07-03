@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-&5rqwlz)o5c$^%bxg2+=1o!(f5)iuc1ghet8!jwuduh1rn%-qk
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['tcgplex.com', 'www.tcgplex.com', '159.223.94.36', 'localhost', '127.0.0.1']
 
 
 # Application definition
