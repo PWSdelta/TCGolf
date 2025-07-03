@@ -14,90 +14,87 @@ import re
 def improve_content_formatting(text):
     """
     Improve content formatting while preserving the existing structure.
-    Handles bold headers and bullet points properly.
+    Handles bold headers, bullet points, and markdown tables properly.
     """
     if not text:
         return ""
     
-    # Remove template instructions
+    # Remove template instructions and clean up markers
     text = re.sub(r'---.*\(Continue with.*\).*---', '', text, flags=re.DOTALL)
-    text = re.sub(r'\n*---.*---\n*', '\n\n', text)  # Remove any remaining template markers
+    text = re.sub(r'\n*---.*---\n*', '\n\n', text)
+    text = re.sub(r'\*\*\s*$', '', text)
+    text = re.sub(r'\n\s*\*\*\s*\n', '\n\n', text)
     
+    # Fix markdown table formatting
     lines = text.split('\n')
     result = []
-    in_numbered_list = False
-    current_list_content = []
+    table_started = False
+    needs_header = False
     
-    for line in lines:
-        original_line = line
+    for i, line in enumerate(lines):
         line = line.strip()
         
-        # Skip empty lines but preserve spacing
-        if not line:
-            # If we were in a numbered list, close it first
-            if in_numbered_list and current_list_content:
-                # Join the content and add as one list item
-                list_item_content = ' '.join(current_list_content)
-                result.append(list_item_content)
-                current_list_content = []
-                in_numbered_list = False
-            result.append('')
+        # Skip empty lines and lines with just pipes
+        if not line or line.strip('| ') == '':
+            if not table_started:
+                result.append('')
             continue
         
-        # Handle bold numbered headers like **1. The Aberdeen Country Club**
-        bold_header_match = re.match(r'^\*\*(\d+\.\s*.+?)\*\*$', line)
-        if bold_header_match:
-            # Close any pending numbered list
-            if in_numbered_list and current_list_content:
-                list_item_content = ' '.join(current_list_content)
-                result.append(list_item_content)
-                current_list_content = []
-                in_numbered_list = False
+        # Check for table content
+        if '|' in line:
+            cells = [cell.strip() for cell in line.split('|')]
+            if len(cells) < 3:  # Need at least one real column
+                continue
+                
+            # Clean and standardize the row
+            cleaned_row = '|' + '|'.join(f' {cell.strip()} ' for cell in cells[1:-1]) + '|'
             
-            header_text = bold_header_match.group(1).strip()
+            # Handle start of table
+            if not table_started:
+                table_started = True
+                if 'Month' in line or 'Month'.upper() in line or any(c.isupper() for c in line):
+                    # This is a header row
+                    result.append(cleaned_row)
+                    # Add separator row
+                    cols = len(cells) - 2  # subtract first/last empty cells
+                    result.append('|' + '|'.join([' --- ' for _ in range(cols)]) + '|')
+                else:
+                    # Missing header - add it based on context
+                    if "Month" in text[:1000]:  # Check if this is a monthly table
+                        result.append('| Month | Avg. High (°C) | Avg. Low (°C) | Rainfall (mm) | Playing Conditions |')
+                        result.append('| --- | --- | --- | --- | --- |')
+                    needs_header = True
+                continue
+            
+            # Skip separator rows if we already added one
+            if '---' in line:
+                continue
+                
+            # Add content row
+            result.append(cleaned_row)
+            continue
+        
+        # Not a table row
+        if table_started:
+            table_started = False
+            result.append('')  # Add space after table
+        
+        # Handle regular content
+        if line.startswith('#'):
+            result.append(line)
+        elif re.match(r'^\*\*(\d+\.\s*.+?)\*\*$', line):
+            header_text = re.match(r'^\*\*(\d+\.\s*.+?)\*\*$', line).group(1).strip()
             result.append(f"### {header_text}")
-            continue
-        
-        # Check if we're starting a numbered list item
-        numbered_item_match = re.match(r'^(\d+\.)\s*(.+)', line)
-        if numbered_item_match:
-            # Close previous list item if we were in one
-            if in_numbered_list and current_list_content:
-                list_item_content = ' '.join(current_list_content)
-                result.append(list_item_content)
-                current_list_content = []
-            
-            # Start new list item
-            in_numbered_list = True
-            number = numbered_item_match.group(1)
-            content = numbered_item_match.group(2)
-            current_list_content = [f"{number} {content}"]
-            continue
-        
-        # Handle content that belongs to a numbered list item
-        if in_numbered_list:
-            # If it's a bullet point, convert it to plain text
-            if line.startswith('*'):
-                bullet_content = line[1:].strip()  # Remove the * and trim
-                current_list_content.append(bullet_content)
-            else:
-                # Regular content belonging to the list item
-                current_list_content.append(line)
-            continue
-        
-        # Regular lines - keep as is
-        result.append(original_line)
+        elif line not in ['**', '***', '____', '---']:
+            result.append(line)
     
-    # Handle any remaining numbered list content
-    if in_numbered_list and current_list_content:
-        list_item_content = ' '.join(current_list_content)
-        result.append(list_item_content)
-    
-    # Join and clean up extra whitespace
+    # Join and clean up
     content = '\n'.join(result)
+    content = re.sub(r'\n{3,}', '\n\n', content)  # Remove excessive blank lines
     
-    # Remove excessive blank lines (more than 2 consecutive)
-    content = re.sub(r'\n{3,}', '\n\n', content)
+    # If content appears truncated, append a note
+    if re.search(r'\*\*\s*$', content):
+        content += "\n\n---\n\n**Note:** This guide appears to be incomplete. Please check back later for the full content."
     
     return content
 
@@ -201,9 +198,13 @@ def destination_detail(request, slug, language='en'):
         
         # Process the content
         content = improve_content_formatting(guide.content)
-        article_html = md.markdown(content, extensions=["tables"])
+        article_html = md.markdown(content, extensions=["tables", "fenced_code", "nl2br"])
         # Add target="_blank" to all links
         article_html = re.sub(r'<a (?![^>]*target=)', '<a target="_blank" ', article_html)
+        
+        # Add a warning if content seems truncated
+        if len(guide.content) < 1000 or guide.content.strip().endswith('**'):
+            article_html += '<div class="alert alert-warning mt-4" role="alert"><strong>Note:</strong> This guide appears to be incomplete. Please check back later for the full content.</div>'
         
         # Get available languages for this destination
         available_languages = list(
