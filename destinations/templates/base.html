@@ -492,11 +492,22 @@
   <main>
     {% block content %}{% endblock %}
   </main>
+
   <footer class="footer py-4">
     <div class="container text-center">
       <span>&copy; {{ now|date:'Y' }} Golf Destination Explorer</span>
+      &nbsp;|&nbsp;
+      <a href="/privacy-policy" style="color:#ffd700; text-decoration:underline;">Privacy Policy</a>
+      &nbsp;|&nbsp;
+      <a href="/terms" style="color:#ffd700; text-decoration:underline;">Terms of Service</a>
+      <br />
+      <small>
+        Designed by <a href="https://funa.labs/" target="_blank" rel="noopener" style="color:#ffd700; text-decoration:underline;">Funa Labs</a> &mdash; Thoughtfully Crafted Solutions
+      </small>
     </div>
   </footer>
+
+  {% include "cookie_consent.html" %}
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,0 +1,43 @@
+<div id="cookie-consent-banner" style="display:none; position:fixed; bottom:0; left:0; right:0; background:#222; color:#fff; padding:1rem; z-index:9999; text-align:center;">
+  This site uses cookies to improve your experience and to show personalized ads. By using this site, you agree to our <a href="/privacy-policy" style="color:#ffd700; text-decoration:underline;">Privacy Policy</a>.
+  <button id="cookie-consent-accept" style="margin-left:1rem; background:#ffd700; color:#222; border:none; border-radius:5px; padding:0.5rem 1.5rem; font-weight:600; cursor:pointer;">Accept</button>
+</div>
+<script>
+(function() {
+  function setCookie(name, value, days) {
+    var expires = "";
+    if (days) {
+      var date = new Date();
+      date.setTime(date.getTime() + (days*24*60*60*1000));
+      expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+  }
+  function getCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0;i < ca.length;i++) {
+      var c = ca[i];
+      while (c.charAt(0)==' ') c = c.substring(1,c.length);
+      if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+    }
+    return null;
+  }
+  function showBanner() {
+    document.getElementById('cookie-consent-banner').style.display = 'block';
+  }
+  function hideBanner() {
+    document.getElementById('cookie-consent-banner').style.display = 'none';
+  }
+  if (!getCookie('cookie_consent')) {
+    // Show only for EU/EEA (very basic check)
+    fetch('https://ipapi.co/json/').then(function(resp) { return resp.json(); }).then(function(data) {
+      if (data && data.in_eu) showBanner();
+    });
+  }
+  document.getElementById('cookie-consent-accept').onclick = function() {
+    setCookie('cookie_consent', 'accepted', 365);
+    hideBanner();
+  };
+})();
+</script>
