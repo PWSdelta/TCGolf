@@ -30,8 +30,19 @@ def ads_txt(request):
     except FileNotFoundError:
         return HttpResponse('', content_type='text/plain', status=404)
 
+def sitemap_xml(request):
+    """Serve sitemap.xml file for search engine indexing"""
+    sitemap_path = os.path.join(settings.BASE_DIR, 'sitemap.xml')
+    try:
+        with open(sitemap_path, 'r') as f:
+            content = f.read()
+        return HttpResponse(content, content_type='application/xml')
+    except FileNotFoundError:
+        return HttpResponse('', content_type='application/xml', status=404)
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('ads.txt', ads_txt, name='ads_txt'),
+    path('sitemap.xml', sitemap_xml, name='sitemap_xml'),
     path('', include('destinations.urls')),
 ]
