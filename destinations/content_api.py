@@ -81,29 +81,31 @@ TARGET_LANGUAGES = {
 @method_decorator(csrf_exempt, name='dispatch')
 class FetchWorkView(View):
     """
-    Returns destination data for content generation work
+    Returns a single (destination, language) work unit for content generation
     Prioritizes destinations without any guides, then those missing language versions
     """
     
     def get(self, request):
         try:
-            # Priority 1: Destinations with no guides at all
+            # Find the next (destination, language) pair to work on
+            destination = None
+            target_language = None
+            priority = None
+            
+            # Priority 1: Destinations with no guides at all (start with English)
             destinations_without_guides = Destination.objects.filter(
                 guides__isnull=True
             ).order_by('?')  # Random order
             
             if destinations_without_guides.exists():
                 destination = destinations_without_guides.first()
-                missing_languages = ['en'] + list(TARGET_LANGUAGES.keys())
+                target_language = 'en'  # Always start with English
                 priority = 'no_guides'
             else:
                 # Priority 2: Destinations missing language versions
                 destinations_with_guides = Destination.objects.filter(
                     guides__isnull=False
                 ).prefetch_related('guides').order_by('?')
-                
-                destination = None
-                missing_languages = []
                 
                 for dest in destinations_with_guides:
                     existing_languages = set(dest.guides.values_list('language_code', flat=True))
@@ -112,7 +114,8 @@ class FetchWorkView(View):
                     
                     if missing:
                         destination = dest
-                        missing_languages = missing
+                        # Prioritize English if missing, otherwise pick first missing language
+                        target_language = 'en' if 'en' in missing else missing[0]
                         priority = 'missing_languages'
                         break
                 
@@ -122,7 +125,7 @@ class FetchWorkView(View):
                         'message': 'All destinations have complete content in all languages'
                     })
             
-            # Get existing guides for context
+            # Get existing guides for context (for translation or reference)
             existing_guides = {}
             if destination.guides.exists():
                 for guide in destination.guides.all():
@@ -132,9 +135,7 @@ class FetchWorkView(View):
                         'updated_at': guide.updated_at.isoformat()
                     }
             
-            # Suggest primary language based on country
-            primary_language = self.get_primary_language(destination.country)
-            
+            # Prepare the single work unit
             work_data = {
                 'status': 'work_available',
                 'priority': priority,
@@ -149,20 +150,19 @@ class FetchWorkView(View):
                     'longitude': float(destination.longitude),
                     'slug': destination.generate_slug(),
                 },
-                'missing_languages': missing_languages,
-                'suggested_primary_language': primary_language,
+                'target_language': target_language,
+                'language_name': TARGET_LANGUAGES.get(target_language, 'English'),
                 'existing_guides': existing_guides,
-                'target_languages': TARGET_LANGUAGES,
+                'is_translation': target_language != 'en' and 'en' in existing_guides,
                 'work_requirements': {
-                    'english_guide_min_words': 2500,
-                    'translated_guide_min_words': 2000,
+                    'min_words': 2500 if target_language == 'en' else 2000,
                     'include_local_insights': True,
                     'include_seasonal_info': True,
                     'include_course_recommendations': True
                 }
             }
             
-            logger.info(f"Fetched work for destination: {destination.city}, {destination.country}")
+            logger.info(f"Fetched work unit: {destination.city}, {destination.country} ({target_language})")
             return JsonResponse(work_data)
             
         except Exception as e:
@@ -172,43 +172,12 @@ class FetchWorkView(View):
                 'message': f'Error fetching work: {str(e)}'
             }, status=500)
     
-    def get_primary_language(self, country):
-        """Suggest primary language based on country"""
-        country_language_map = {
-            'Spain': 'es',
-            'Mexico': 'es',
-            'Argentina': 'es',
-            'Chile': 'es',
-            'Colombia': 'es',
-            'Uruguay': 'es',
-            'France': 'fr',
-            'Germany': 'de',
-            'Austria': 'de',
-            'Switzerland': 'de',
-            'Italy': 'it',
-            'Portugal': 'pt',
-            'Brazil': 'pt',
-            'Netherlands': 'nl',
-            'Japan': 'ja',
-            'South Korea': 'ko',
-            'China': 'zh',
-            'Saudi Arabia': 'ar',
-            'United Arab Emirates': 'ar',
-            'Qatar': 'ar',
-            'Oman': 'ar',
-            'Bahrain': 'ar',
-            'Kuwait': 'ar',
-            'Jordan': 'ar',
-            'Lebanon': 'ar',
-        }
-        return country_language_map.get(country, 'en')
-
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SubmitWorkView(View):
     """
-    Accepts completed content generation work
-    Expects JSON with destination_id and guides in multiple languages
+    Accepts completed content generation work for a single (destination, language) pair
+    Expects JSON with destination_id, language_code, and content
     """
     
     def post(self, request):
@@ -216,45 +185,37 @@ class SubmitWorkView(View):
             data = json.loads(request.body)
             
             destination_id = data.get('destination_id')
-            guides = data.get('guides', {})
+            language_code = data.get('language_code')
+            content = data.get('content', '')
             worker_info = data.get('worker_info', {})
             
-            if not destination_id or not guides:
+            if not destination_id or not language_code or not content:
                 return JsonResponse({
                     'status': 'error',
-                    'message': 'destination_id and guides are required'
+                    'message': 'destination_id, language_code, and content are required'
+                }, status=400)
+            
+            # Validate content length
+            if len(content.strip()) < 1000:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f'Content is too short (minimum 1000 characters, got {len(content.strip())})'
                 }, status=400)
             
             destination = Destination.objects.get(id=destination_id)
             
-            created_guides = []
-            updated_guides = []
-            errors = []
+            # Create or update guide
+            guide, created = DestinationGuide.objects.update_or_create(
+                destination=destination,
+                language_code=language_code,
+                defaults={
+                    'content': content,
+                    'updated_at': datetime.now(timezone.utc)
+                }
+            )
             
-            for language, guide_data in guides.items():
-                try:
-                    content = guide_data.get('content', '')
-                    if not content or len(content.strip()) < 1000:
-                        errors.append(f"Content for {language} is too short (minimum 1000 characters)")
-                        continue
-                    
-                    # Create or update guide
-                    guide, created = DestinationGuide.objects.update_or_create(
-                        destination=destination,
-                        language_code=language,
-                        defaults={
-                            'content': content,
-                            'updated_at': datetime.now(timezone.utc)
-                        }
-                    )
-                    
-                    if created:
-                        created_guides.append(language)
-                    else:
-                        updated_guides.append(language)
-                        
-                except Exception as e:
-                    errors.append(f"Error processing {language}: {str(e)}")
+            action = 'created' if created else 'updated'
+            language_name = TARGET_LANGUAGES.get(language_code, 'English')
             
             response_data = {
                 'status': 'success',
@@ -263,17 +224,18 @@ class SubmitWorkView(View):
                     'city': destination.city,
                     'country': destination.country
                 },
-                'results': {
-                    'created_guides': created_guides,
-                    'updated_guides': updated_guides,
-                    'total_processed': len(created_guides) + len(updated_guides),
-                    'errors': errors
+                'guide': {
+                    'language_code': language_code,
+                    'language_name': language_name,
+                    'action': action,
+                    'content_length': len(content),
+                    'created_at': guide.created_at.isoformat(),
+                    'updated_at': guide.updated_at.isoformat()
                 },
                 'worker_info': worker_info
             }
             
-            logger.info(f"Submitted work for {destination.city}, {destination.country}: "
-                       f"{len(created_guides)} created, {len(updated_guides)} updated")
+            logger.info(f"Submitted work for {destination.city}, {destination.country} ({language_code}): {action}")
             
             return JsonResponse(response_data)
             

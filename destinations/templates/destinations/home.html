@@ -95,39 +95,37 @@
     </div>
     <div class="destinations-grid">
       {% if not request.GET.q %}
-        {% cache 900 destinations_grid %}
-          {% for dest in destinations %}
-            <a href="{{ dest.get_absolute_url }}" class="destination-card-link">
-              <div class="destination-card">
-                <div class="image-placeholder">
-                  <div class="golf-icon">
-                    ⛳
-                    <div class="travel-icon">✈️</div>
-                    <div class="travel-message">Let's travel there!</div>
-                  </div>
-                  <div class="destination-preview">
-                    <h3 class="destination-name">{{ dest.name }}</h3>
-                    <p class="destination-location">
-                      <span class="location-icon">📍</span>
-                      {{ dest.city }}, {{ dest.region_or_state }}
-                    </p>
-                    <p class="destination-country">
-                      {{ dest.country|country_flag }} {{ dest.country }}
-                    </p>
-                  </div>
+        {% for dest in destinations %}
+          <a href="{{ dest.get_absolute_url }}" class="destination-card-link">
+            <div class="destination-card">
+              <div class="image-placeholder">
+                <div class="golf-icon">
+                  ⛳
+                  <div class="travel-icon">✈️</div>
+                  <div class="travel-message">Let's travel there!</div>
                 </div>
-                <div class="card-overlay">
-                  <span class="view-details">✈️ Explore Destination →</span>
+                <div class="destination-preview">
+                  <h3 class="destination-name">{{ dest.name }}</h3>
+                  <p class="destination-location">
+                    <span class="location-icon">📍</span>
+                    {{ dest.city }}, {{ dest.region_or_state }}
+                  </p>
+                  <p class="destination-country">
+                    {{ dest.country|country_flag }} {{ dest.country }}
+                  </p>
                 </div>
               </div>
-            </a>
-          {% empty %}
-            <div class="col-12 text-center py-5">
-              <h4 style="color: #6c757d;">No destinations found</h4>
-              <p>Try adjusting your search criteria</p>
+              <div class="card-overlay">
+                <span class="view-details">✈️ Explore Destination →</span>
+              </div>
             </div>
-          {% endfor %}
-        {% endcache %}
+          </a>
+        {% empty %}
+          <div class="col-12 text-center py-5">
+            <h4 style="color: #6c757d;">No destinations found</h4>
+            <p>Try adjusting your search criteria</p>
+          </div>
+        {% endfor %}
       {% else %}
         {% for dest in destinations %}
           <a href="{{ dest.get_absolute_url }}" class="destination-card-link">

@@ -3,12 +3,14 @@
 GolfPlex Content Generation Worker
 
 This script runs locally and:
-1. Fetches work from Django API
-2. Generates English guide (2500+ words) if missing
-3. Generates content in the destination's home language
-4. Translates to all other target languages
-5. Saves work to JSON for safety
-6. Submits completed work back to the API
+1. Fetches a single (destination, language) work unit from Django API
+2. Generates English guide (2500+ words) OR translates existing English content
+3. Saves work to JSON for safety
+4. Submits completed work back to the API immediately
+5. Fetches next work unit and repeats
+
+Each work unit is one destination + one language, preventing race conditions
+between multiple workers and enabling immediate submission.
 
 Usage:
     python content_worker.py --api-url http://localhost:8000 --model gemma3n:e4b
@@ -145,23 +147,21 @@ class GolfContentWorker:
             return ""
 
     def fetch_work(self) -> Optional[Dict]:
-        """Fetch next work item from the API"""
+        """Fetch next (destination, language) work item from the API"""
         try:
             print(f"📥 Fetching work from {self.api_url}/api/fetch-work/")
             response = self.session.get(f"{self.api_url}/api/fetch-work/", timeout=30)
             response.raise_for_status()
             data = response.json()
-            
             if data['status'] == 'no_work':
                 print("🎉 No more work available - all content is complete!")
                 return None
             elif data['status'] == 'work_available':
-                print("✅ Work fetched successfully")
+                print(f"✅ Work fetched: {data['destination'].get('city', '')}, {data['destination'].get('country', '')} [{data['target_language']}]")
                 return data
             else:
                 print(f"❌ Error fetching work: {data.get('message', 'Unknown error')}")
                 return None
-                
         except requests.RequestException as e:
             print(f"❌ Network error fetching work: {e}")
             return None
@@ -243,93 +243,70 @@ Provide the complete translated guide in {language_name}:
         
         return self.call_ollama(prompt, system_prompt)
     
-    def process_work_item(self, work_data: Dict, english_only: bool = False) -> bool:
-        """Process a single work item"""
+    def process_work_item(self, work_data: Dict) -> bool:
+        """Process a single (destination, language) work item"""
         process_start_time = time.time()
-        
         destination = work_data['destination']
-        missing_languages = work_data['missing_languages']
-        existing_guides = work_data.get('existing_guides', {})
-        primary_language = work_data.get('suggested_primary_language', 'en')
+        language = work_data['target_language']  # Updated to match new API
+        content = ""
+        generation_time = 0
         
-        print(f"\n🏌️ Processing: {destination['city']}, {destination['country']}")
-        print(f"📝 Missing languages: {', '.join(missing_languages)}")
-        print(f"🌍 Suggested primary: {primary_language}")
+        print(f"\n🏌️ Processing: {destination['city']}, {destination['country']} [{language}]")
         
-        if english_only:
-            print("🇺🇸 English-only mode enabled")
-            # Filter to only English if it's missing
-            if 'en' not in missing_languages:
-                print("✅ English guide already exists, skipping...")
-                return True  # Consider this successful
-            missing_languages = ['en']  # Only process English
-        
-        guides = {}
-        generation_times = {}
-        
-        # Step 1: Generate English guide if needed
-        if 'en' in missing_languages:
+        # English generation
+        if language == 'en':
             print("📖 Generating English guide...")
             english_start = time.time()
-            english_content = self.generate_english_guide(destination)
-            english_time = time.time() - english_start
-            generation_times['en'] = english_time
+            content = self.generate_english_guide(destination)
+            generation_time = time.time() - english_start
             
-            if english_content:
-                guides['en'] = {'content': english_content}
-                print(f"✅ Generated English guide ({len(english_content)} characters in {english_time:.1f}s)")
+            if content:
+                print(f"✅ Generated English guide for {destination['city']}, {destination['country']} ({len(content)} characters in {generation_time:.1f}s)")
             else:
-                print("❌ Failed to generate English guide")
+                print(f"❌ Failed to generate English guide for {destination['city']}, {destination['country']}")
                 return False
         else:
-            # Use existing English content for translations
+            # Translation: need English content
+            existing_guides = work_data.get('existing_guides', {})
             english_content = existing_guides.get('en', {}).get('content', '')
+            
             if not english_content:
-                print("❌ No English content available for translation")
+                print(f"❌ No English content available for translation for {destination['city']}, {destination['country']}")
+                return False
+                
+            print(f"🌐 Translating to {self.language_names.get(language, language)}...")
+            translation_start = time.time()
+            content = self.translate_guide(english_content, language, destination)
+            generation_time = time.time() - translation_start
+            
+            if content:
+                print(f"✅ Translated to {language} for {destination['city']}, {destination['country']} ({len(content)} characters in {generation_time:.1f}s)")
+            else:
+                print(f"❌ Failed to translate to {language} for {destination['city']}, {destination['country']}")
                 return False
         
-        # Step 2: Generate/translate other languages (skip if english_only)
-        if not english_only:
-            for lang in missing_languages:
-                if lang == 'en':
-                    continue  # Already handled
-                
-                print(f"🌐 Translating to {self.language_names.get(lang, lang)}...")
-                translation_start = time.time()
-                translated_content = self.translate_guide(english_content, lang, destination)
-                translation_time = time.time() - translation_start
-                generation_times[lang] = translation_time
-                
-                if translated_content:
-                    guides[lang] = {'content': translated_content}
-                    print(f"✅ Translated to {lang} ({len(translated_content)} characters in {translation_time:.1f}s)")
-                else:
-                    print(f"❌ Failed to translate to {lang}")
-        else:
-            print("⏭️  Skipping translations (English-only mode)")
-        
-        # Step 3: Save to JSON file for safety
+        # Save to JSON for safety
+        guides = {language: {'content': content}}
         self.save_work_json(destination, guides)
         
-        # Step 4: Submit to API
-        submit_success = self.submit_work(destination['id'], guides)
+        # Submit to API (updated format)
+        submit_success = self.submit_work_single(destination['id'], language, content)
         
-        # Final timing summary and tracking
+        # Timing summary
         total_time = time.time() - process_start_time
         destination_timing = {
             'destination': f"{destination['city']}, {destination['country']}",
             'destination_id': destination['id'],
+            'language': language,
             'total_time': total_time,
-            'languages_processed': list(guides.keys()),
-            'generation_times': generation_times,
+            'generation_time': generation_time,
             'success': submit_success,
             'timestamp': datetime.now().isoformat()
         }
         self.destination_timings.append(destination_timing)
         
-        print(f"⏱️  Destination processing time: {total_time:.1f} seconds")
+        print(f"⏱️  Work unit processing time: {total_time:.1f} seconds")
         self.print_timing_summary()
-        
         return submit_success
     
     def print_timing_summary(self):
@@ -345,8 +322,8 @@ Provide the complete translated guide in {language_name}:
             slowest = max(successful_timings, key=lambda x: x['total_time'])
             
             print(f"📊 Timing Stats: Avg: {avg_time:.1f}s | "
-                  f"Fastest: {fastest['total_time']:.1f}s ({fastest['destination']}) | "
-                  f"Slowest: {slowest['total_time']:.1f}s ({slowest['destination']})")
+                  f"Fastest: {fastest['total_time']:.1f}s ({fastest['destination']} {fastest['language']}) | "
+                  f"Slowest: {slowest['total_time']:.1f}s ({slowest['destination']} {slowest['language']})")
 
     def get_worker_uptime(self) -> str:
         """Get formatted worker uptime"""
@@ -383,6 +360,43 @@ Provide the complete translated guide in {language_name}:
         
         print(f"💾 Saved work to: {filepath}")
     
+    def submit_work_single(self, destination_id: int, language_code: str, content: str) -> bool:
+        """Submit completed work for a single (destination, language) pair to the API"""
+        try:
+            print(f"📤 Submitting work for destination {destination_id} ({language_code})...")
+            payload = {
+                'destination_id': destination_id,
+                'language_code': language_code,
+                'content': content,
+                'worker_info': {
+                    'worker_version': '1.0',
+                    'generated_at': datetime.now().isoformat()
+                }
+            }
+            
+            response = self.session.post(
+                f"{self.api_url}/api/submit-work/",
+                json=payload,
+                headers={'Content-Type': 'application/json'},
+                timeout=60
+            )
+            response.raise_for_status()
+            
+            result = response.json()
+            if result['status'] == 'success':
+                guide = result['guide']
+                print(f"✅ Submitted work successfully:")
+                print(f"   {guide['action'].title()}: {guide['language_name']} guide")
+                print(f"   Content length: {guide['content_length']} characters")
+                return True
+            else:
+                print(f"❌ Submission failed: {result.get('message', 'Unknown error')}")
+                return False
+                
+        except requests.RequestException as e:
+            print(f"❌ Network error submitting work: {e}")
+            return False
+
     def submit_work(self, destination_id: int, guides: Dict) -> bool:
         """Submit completed work to the API"""
         try:
@@ -445,62 +459,43 @@ Provide the complete translated guide in {language_name}:
         except requests.RequestException as e:
             print(f"❌ Error getting work status: {e}")
     
-    def run(self, max_items: int = None, english_only: bool = False):
-        """Main worker loop"""
-        self.worker_start_time = time.time()  # Start timing
-        
+    def run(self, max_items: int = None):
+        """Main worker loop: fetch and process one (destination, language) at a time"""
+        self.worker_start_time = time.time()
         print("🚀 Starting GolfPlex Content Generation Worker (Ollama)")
         print(f"🔗 API URL: {self.api_url}")
         print(f"🤖 Ollama URL: {self.ollama_url}")
         print(f"📂 Output directory: {self.output_dir}")
         print(f"🧠 Model: {self.model_name}")
         print(f"⏰ Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        
-        if english_only:
-            print("🇺🇸 Mode: English-only (no translations)")
-        else:
-            print("🌍 Mode: Full multi-language generation")
-        
-        # Show initial status
         self.get_work_status()
-        
         processed = 0
         while max_items is None or processed < max_items:
             uptime = self.get_worker_uptime()
             print(f"\n🔄 Fetching work item {processed + 1}... (Uptime: {uptime})")
-            
             work_data = self.fetch_work()
             if not work_data:
                 break
-            
-            success = self.process_work_item(work_data, english_only=english_only)
+            success = self.process_work_item(work_data)
             if success:
                 processed += 1
                 print(f"✅ Completed work item {processed}")
             else:
                 print(f"❌ Failed work item {processed + 1}")
-                # Continue anyway instead of breaking
                 print("🔄 Continuing to next item...")
-            
-            # Small delay between items
             time.sleep(2)
-        
-        # Final summary
         final_uptime = self.get_worker_uptime()
         print(f"\n🎯 Worker completed. Processed {processed} items.")
         print(f"⏰ Total uptime: {final_uptime}")
-        
         if self.destination_timings:
             successful = len([t for t in self.destination_timings if t['success']])
             failed = len(self.destination_timings) - successful
             print(f"📊 Final Stats: {successful} successful, {failed} failed")
-            
             if successful > 0:
                 total_generation_time = sum(t['total_time'] for t in self.destination_timings if t['success'])
                 avg_time = total_generation_time / successful
-                print(f"⚡ Average time per destination: {avg_time:.1f}s")
+                print(f"⚡ Average time per work unit: {avg_time:.1f}s")
                 print(f"🏭 Total generation time: {total_generation_time:.1f}s")
-        
         self.get_work_status()
 
 
@@ -529,9 +524,8 @@ def main():
         output_dir=args.output_dir,
         model_name=args.model
     )
-    
     try:
-        worker.run(max_items=args.max_items, english_only=args.english_only)
+        worker.run(max_items=args.max_items)
     except KeyboardInterrupt:
         print("\n⏹️  Worker stopped by user")
     except Exception as e:
