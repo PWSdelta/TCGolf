@@ -103,7 +103,7 @@ class GolfContentWorker:
             response = requests.post(
                 f"{self.ollama_url}/api/generate",
                 json=payload,
-                timeout=300,  # 5 minute timeout for long content generation
+                timeout=900,  # 15 minute timeout for long content generation
                 stream=True   # Enable streaming response
             )
             response.raise_for_status()
@@ -150,7 +150,7 @@ class GolfContentWorker:
         """Fetch next (destination, language) work item from the API"""
         try:
             print(f"📥 Fetching work from {self.api_url}/api/fetch-work/")
-            response = self.session.get(f"{self.api_url}/api/fetch-work/", timeout=30)
+            response = self.session.get(f"{self.api_url}/api/fetch-work/", timeout=60)  # 1 minute timeout for fetching work
             response.raise_for_status()
             data = response.json()
             
@@ -382,8 +382,9 @@ Provide the complete translated guide in {language_name}:
     def submit_work_single(self, destination_id: int, language_code: str, content: str) -> bool:
         """Submit completed work for a single (destination, language) pair to the API"""
         try:
-            print(f"📤 Submitting work for destination {destination_id} ({language_code})...")
-            payload = {
+            # Try new atomic format first
+            print(f"📤 Submitting work (atomic format) for destination {destination_id} ({language_code})...")
+            atomic_payload = {
                 'destination_id': destination_id,
                 'language_code': language_code,
                 'content': content,
@@ -393,24 +394,59 @@ Provide the complete translated guide in {language_name}:
                 }
             }
             
-            response = self.session.post(
-                f"{self.api_url}/api/submit-work/",
-                json=payload,
-                headers={'Content-Type': 'application/json'},
-                timeout=60
-            )
-            response.raise_for_status()
-            
-            result = response.json()
-            if result['status'] == 'success':
-                guide = result['guide']
-                print(f"✅ Submitted work successfully:")
-                print(f"   {guide['action'].title()}: {guide['language_name']} guide")
-                print(f"   Content length: {guide['content_length']} characters")
-                return True
-            else:
-                print(f"❌ Submission failed: {result.get('message', 'Unknown error')}")
-                return False
+            try:
+                response = self.session.post(
+                    f"{self.api_url}/api/submit-work/",
+                    json=atomic_payload,
+                    headers={'Content-Type': 'application/json'},
+                    timeout=300  # 5 minute timeout for large content submissions
+                )
+                response.raise_for_status()
+                
+                result = response.json()
+                if result['status'] == 'success':
+                    guide = result['guide']
+                    print(f"✅ Submitted work successfully (atomic format):")
+                    print(f"   {guide['action'].title()}: {guide['language_name']} guide")
+                    print(f"   Content length: {guide['content_length']} characters")
+                    return True
+                
+            except (requests.RequestException, KeyError) as e:
+                print(f"⚠️ Atomic submission failed, trying legacy format: {str(e)}")
+                
+                # Fall back to legacy bulk format
+                print(f"📤 Submitting work (legacy format) for destination {destination_id}...")
+                legacy_payload = {
+                    'destination_id': destination_id,
+                    'guides': {
+                        language_code: {
+                            'content': content
+                        }
+                    },
+                    'worker_info': {
+                        'worker_version': '1.0',
+                        'generated_at': datetime.now().isoformat()
+                    }
+                }
+                
+                response = self.session.post(
+                    f"{self.api_url}/api/submit-work/",
+                    json=legacy_payload,
+                    headers={'Content-Type': 'application/json'},
+                    timeout=60
+                )
+                response.raise_for_status()
+                
+                result = response.json()
+                if result['status'] == 'success':
+                    results = result.get('results', {})
+                    print(f"✅ Submitted work successfully (legacy format):")
+                    print(f"   Created: {len(results.get('created_guides', []))} guides")
+                    print(f"   Updated: {len(results.get('updated_guides', []))} guides")
+                    return True
+                
+            print(f"❌ Both submission formats failed: {result.get('message', 'Unknown error')}")
+            return False
                 
         except requests.RequestException as e:
             print(f"❌ Network error submitting work: {e}")
