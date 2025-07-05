@@ -380,77 +380,51 @@ Provide the complete translated guide in {language_name}:
         print(f"💾 Saved work to: {filepath}")
     
     def submit_work_single(self, destination_id: int, language_code: str, content: str) -> bool:
-        """Submit completed work for a single (destination, language) pair to the API"""
-        try:
-            # Try new atomic format first
-            print(f"📤 Submitting work (atomic format) for destination {destination_id} ({language_code})...")
-            atomic_payload = {
-                'destination_id': destination_id,
-                'language_code': language_code,
-                'content': content,
-                'worker_info': {
-                    'worker_version': '1.0',
-                    'generated_at': datetime.now().isoformat()
-                }
-            }
-            
+        """Submit completed work for a single (destination, language) pair to the API with retry logic."""
+        max_retries = 10  # Maximum number of retries
+        retry_intervals = [1, 2, 3, 5, 7, 11, 13, 17, 19, 23]  # Prime number intervals
+        retry_intervals += [31] * (max_retries - len(retry_intervals))  # Extend with 31s intervals
+
+        for attempt in range(max_retries):
             try:
-                response = self.session.post(
-                    f"{self.api_url}/api/submit-work/",
-                    json=atomic_payload,
-                    headers={'Content-Type': 'application/json'},
-                    timeout=300  # 5 minute timeout for large content submissions
-                )
-                response.raise_for_status()
-                
-                result = response.json()
-                if result['status'] == 'success':
-                    guide = result['guide']
-                    print(f"✅ Submitted work successfully (atomic format):")
-                    print(f"   {guide['action'].title()}: {guide['language_name']} guide")
-                    print(f"   Content length: {guide['content_length']} characters")
-                    return True
-                
-            except (requests.RequestException, KeyError) as e:
-                print(f"⚠️ Atomic submission failed, trying legacy format: {str(e)}")
-                
-                # Fall back to legacy bulk format
-                print(f"📤 Submitting work (legacy format) for destination {destination_id}...")
-                legacy_payload = {
+                # Try new atomic format first
+                print(f"📤 Attempt {attempt + 1}/{max_retries}: Submitting work (atomic format) for destination {destination_id} ({language_code})...")
+                atomic_payload = {
                     'destination_id': destination_id,
-                    'guides': {
-                        language_code: {
-                            'content': content
-                        }
-                    },
+                    'language_code': language_code,
+                    'content': content,
                     'worker_info': {
                         'worker_version': '1.0',
                         'generated_at': datetime.now().isoformat()
                     }
                 }
-                
+
                 response = self.session.post(
                     f"{self.api_url}/api/submit-work/",
-                    json=legacy_payload,
+                    json=atomic_payload,
                     headers={'Content-Type': 'application/json'},
-                    timeout=60
+                    timeout=300
                 )
-                response.raise_for_status()
-                
-                result = response.json()
-                if result['status'] == 'success':
-                    results = result.get('results', {})
-                    print(f"✅ Submitted work successfully (legacy format):")
-                    print(f"   Created: {len(results.get('created_guides', []))} guides")
-                    print(f"   Updated: {len(results.get('updated_guides', []))} guides")
+
+                if response.status_code == 200:
+                    print(f"✅ Work submitted successfully (atomic format)")
                     return True
-                
-            print(f"❌ Both submission formats failed: {result.get('message', 'Unknown error')}")
-            return False
-                
-        except requests.RequestException as e:
-            print(f"❌ Network error submitting work: {e}")
-            return False
+                elif response.status_code == 400:
+                    print(f"❌ Bad Request (400): {response.text[:500]}...")
+                else:
+                    print(f"⚠️ Submission failed with status {response.status_code}: {response.text[:500]}...")
+
+            except requests.RequestException as e:
+                print(f"❌ Network error on attempt {attempt + 1}: {e}")
+
+            # Wait before retrying
+            if attempt < max_retries - 1:
+                wait_time = retry_intervals[attempt]
+                print(f"⏳ Waiting {wait_time} seconds before retrying...")
+                time.sleep(wait_time)
+
+        print(f"❌ All {max_retries} attempts failed for destination {destination_id} ({language_code}).")
+        return False
 
     def submit_work(self, destination_id: int, guides: Dict) -> bool:
         """Submit completed work to the API"""
