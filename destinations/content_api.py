@@ -176,8 +176,11 @@ class FetchWorkView(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class SubmitWorkView(View):
     """
-    Accepts completed content generation work for a single (destination, language) pair
-    Expects JSON with destination_id, language_code, and content
+    Accepts completed content generation work in two formats:
+    1. Atomic: single (destination, language) pair
+       {destination_id, language_code, content}
+    2. Legacy: bulk format with multiple guides
+       {destination_id, guides: {lang: {content}}}
     """
     
     def post(self, request):
@@ -185,59 +188,113 @@ class SubmitWorkView(View):
             data = json.loads(request.body)
             
             destination_id = data.get('destination_id')
+            if not destination_id:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'destination_id is required'
+                }, status=400)
+                
+            # Try atomic format first
             language_code = data.get('language_code')
             content = data.get('content', '')
             worker_info = data.get('worker_info', {})
             
-            if not destination_id or not language_code or not content:
-                return JsonResponse({
-                    'status': 'error',
-                    'message': 'destination_id, language_code, and content are required'
-                }, status=400)
-            
-            # Validate content length
-            if len(content.strip()) < 1000:
-                return JsonResponse({
-                    'status': 'error',
-                    'message': f'Content is too short (minimum 1000 characters, got {len(content.strip())})'
-                }, status=400)
-            
-            destination = Destination.objects.get(id=destination_id)
-            
-            # Create or update guide
-            guide, created = DestinationGuide.objects.update_or_create(
-                destination=destination,
-                language_code=language_code,
-                defaults={
-                    'content': content,
-                    'updated_at': datetime.now(timezone.utc)
+            # If no language_code, try legacy format
+            if not language_code:
+                guides = data.get('guides', {})
+                if not guides:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'Either language_code+content or guides is required'
+                    }, status=400)
+                    
+                results = {
+                    'created_guides': [],
+                    'updated_guides': [],
+                    'errors': []
                 }
-            )
+                
+                # Process each guide in legacy format
+                for lang, guide_data in guides.items():
+                    try:
+                        guide_content = guide_data.get('content', '')
+                        if len(guide_content.strip()) < 1000:
+                            results['errors'].append(f'Content too short for {lang}')
+                            continue
+                            
+                        guide, created = DestinationGuide.objects.update_or_create(
+                            destination_id=destination_id,
+                            language_code=lang,
+                            defaults={
+                                'content': guide_content,
+                                'updated_at': datetime.now(timezone.utc)
+                            }
+                        )
+                        
+                        if created:
+                            results['created_guides'].append(lang)
+                        else:
+                            results['updated_guides'].append(lang)
+                            
+                    except Exception as e:
+                        results['errors'].append(f'Error processing {lang}: {str(e)}')
+                
+                return JsonResponse({
+                    'status': 'success',
+                    'results': results,
+                    'worker_info': worker_info
+                })
             
-            action = 'created' if created else 'updated'
-            language_name = TARGET_LANGUAGES.get(language_code, 'English')
-            
-            response_data = {
-                'status': 'success',
-                'destination': {
-                    'id': destination.id,
-                    'city': destination.city,
-                    'country': destination.country
-                },
-                'guide': {
-                    'language_code': language_code,
-                    'language_name': language_name,
-                    'action': action,
-                    'content_length': len(content),
-                    'created_at': guide.created_at.isoformat(),
-                    'updated_at': guide.updated_at.isoformat()
-                },
-                'worker_info': worker_info
-            }
-            
-            logger.info(f"Submitted work for {destination.city}, {destination.country} ({language_code}): {action}")
-            
-            return JsonResponse(response_data)
+            # Handle atomic format (single language)
+            if language_code and content:
+                if len(content.strip()) < 1000:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': f'Content is too short (minimum 1000 characters, got {len(content.strip())})'
+                    }, status=400)
+                
+                try:
+                    destination = Destination.objects.get(id=destination_id)
+                    
+                    # Create or update guide
+                    guide, created = DestinationGuide.objects.update_or_create(
+                        destination=destination,
+                        language_code=language_code,
+                        defaults={
+                            'content': content,
+                            'updated_at': datetime.now(timezone.utc)
+                        }
+                    )
+                    
+                    action = 'created' if created else 'updated'
+                    language_name = TARGET_LANGUAGES.get(language_code, 'English')
+                    
+                    response_data = {
+                        'status': 'success',
+                        'destination': {
+                            'id': destination.id,
+                            'city': destination.city,
+                            'country': destination.country
+                        },
+                        'guide': {
+                            'language_code': language_code,
+                            'language_name': language_name,
+                            'action': action,
+                            'content_length': len(content),
+                            'created_at': guide.created_at.isoformat(),
+                            'updated_at': guide.updated_at.isoformat()
+                        },
+                        'worker_info': worker_info
+                    }
+                    
+                    logger.info(f"Submitted work for {destination.city}, {destination.country} ({language_code}): {action}")
+                    return JsonResponse(response_data)
+                    
+                except Destination.DoesNotExist:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': f'Destination {destination_id} not found'
+                    }, status=404)
             
         except Destination.DoesNotExist:
             return JsonResponse({
