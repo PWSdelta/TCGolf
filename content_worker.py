@@ -153,11 +153,25 @@ class GolfContentWorker:
             response = self.session.get(f"{self.api_url}/api/fetch-work/", timeout=30)
             response.raise_for_status()
             data = response.json()
+            
+            # Debug: Show raw API response structure
+            print(f"🔍 API Response keys: {list(data.keys())}")
+            
             if data['status'] == 'no_work':
                 print("🎉 No more work available - all content is complete!")
                 return None
             elif data['status'] == 'work_available':
-                print(f"✅ Work fetched: {data['destination'].get('city', '')}, {data['destination'].get('country', '')} [{data['target_language']}]")
+                # Handle different API response formats
+                language = (data.get('target_language') or 
+                           data.get('language') or 
+                           (data.get('missing_languages', ['unknown'])[0] if data.get('missing_languages') else 'unknown'))
+                
+                print(f"✅ Work fetched: {data['destination'].get('city', '')}, {data['destination'].get('country', '')} [{language}]")
+                
+                # Add the language to data if it's missing for compatibility
+                if 'target_language' not in data and 'language' not in data:
+                    data['target_language'] = language
+                    
                 return data
             else:
                 print(f"❌ Error fetching work: {data.get('message', 'Unknown error')}")
@@ -247,7 +261,12 @@ Provide the complete translated guide in {language_name}:
         """Process a single (destination, language) work item"""
         process_start_time = time.time()
         destination = work_data['destination']
-        language = work_data['target_language']  # Updated to match new API
+        
+        # Handle multiple possible API formats for language
+        language = (work_data.get('target_language') or 
+                   work_data.get('language') or 
+                   (work_data.get('missing_languages', ['en'])[0] if work_data.get('missing_languages') else 'en'))
+        
         content = ""
         generation_time = 0
         
