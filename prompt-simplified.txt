@@ -1,0 +1,10 @@
+"Write a detailed and engaging destination guide for {city}, {region}, {country}, with a focus on its golf scene. The guide should be structured with clear headings and subheadings, combining narrative storytelling with concise, scannable sections. Focus on the following key areas:
+
+Introduction: Provide an overview of the city as a golf destination, highlighting its unique appeal and key features.
+Renowned Golf Courses: Describe the most notable golf courses, including their unique characteristics, signature holes, and what makes them stand out. Use links to course websites where appropriate, ensuring they open in a new tab (target="_blank").
+Off the Beaten Path: Highlight lesser-known courses or hidden gems that offer a unique or unexpected golfing experience.
+Golf on the Cheap: Recommend budget-friendly courses or deals for golfers looking to save money without compromising on quality.
+Seasonal Insights: Offer advice on the best times to visit for golfing, considering weather, peak seasons, and off-season opportunities.
+Travel and Lodging: Include practical advice for international golfers, such as flights, transportation, and accommodation options. Highlight resorts with stay-and-play packages or hotels near top courses.
+Cultural Highlights: Briefly touch on local culture, dining, and other activities that complement a golf trip. Use bullet points sparingly for recommendations like restaurants, attractions, or must-try experiences. Include links to official websites or resources where relevant, ensuring they open in a new tab (target="_blank).
+Ensure the guide is cohesive, easy to read, and provides valuable insights for both novice and experienced golfers. Use vivid descriptions to evoke the beauty and excitement of the destination. Aim for a word count of 3500–4,000 words to allow for detailed coverage of each section."
