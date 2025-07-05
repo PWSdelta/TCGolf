@@ -147,38 +147,49 @@ class GolfContentWorker:
             return ""
 
     def fetch_work(self) -> Optional[Dict]:
-        """Fetch next (destination, language) work item from the API"""
-        try:
-            print(f"📥 Fetching work from {self.api_url}/api/fetch-work/")
-            response = self.session.get(f"{self.api_url}/api/fetch-work/", timeout=60)  # 1 minute timeout for fetching work
-            response.raise_for_status()
-            data = response.json()
-            
-            # Debug: Show raw API response structure
-            print(f"🔍 API Response keys: {list(data.keys())}")
-            
-            if data['status'] == 'no_work':
-                print("🎉 No more work available - all content is complete!")
-                return None
-            elif data['status'] == 'work_available':
-                # Handle different API response formats
-                language = (data.get('target_language') or 
-                           data.get('language') or 
-                           (data.get('missing_languages', ['unknown'])[0] if data.get('missing_languages') else 'unknown'))
-                
-                print(f"✅ Work fetched: {data['destination'].get('city', '')}, {data['destination'].get('country', '')} [{language}]")
-                
-                # Add the language to data if it's missing for compatibility
-                if 'target_language' not in data and 'language' not in data:
-                    data['target_language'] = language
-                    
-                return data
-            else:
-                print(f"❌ Error fetching work: {data.get('message', 'Unknown error')}")
-                return None
-        except requests.RequestException as e:
-            print(f"❌ Network error fetching work: {e}")
-            return None
+        """Fetch next (destination, language) work item from the API with retry logic."""
+        retry_intervals = [1, 2, 3, 5, 7, 11, 13, 17, 19, 23]  # Prime number intervals
+        retry_intervals += [31]  # Infinite retries at 31-second intervals
+
+        attempt = 0
+        while True:
+            try:
+                print(f"📥 Attempt {attempt + 1}: Fetching work from {self.api_url}/api/fetch-work/")
+                response = self.session.get(f"{self.api_url}/api/fetch-work/", timeout=60)  # 1 minute timeout for fetching work
+                response.raise_for_status()
+                data = response.json()
+
+                # Debug: Show raw API response structure
+                print(f"🔍 API Response keys: {list(data.keys())}")
+
+                if data['status'] == 'no_work':
+                    print("🎉 No more work available - all content is complete!")
+                    return None
+                elif data['status'] == 'work_available':
+                    # Handle different API response formats
+                    language = (data.get('target_language') or 
+                               data.get('language') or 
+                               (data.get('missing_languages', ['unknown'])[0] if data.get('missing_languages') else 'unknown'))
+
+                    print(f"✅ Work fetched: {data['destination'].get('city', '')}, {data['destination'].get('country', '')} [{language}]")
+
+                    # Add the language to data if it's missing for compatibility
+                    if 'target_language' not in data and 'language' not in data:
+                        data['target_language'] = language
+
+                    return data
+                else:
+                    print(f"❌ Error fetching work: {data.get('message', 'Unknown error')}")
+                    return None
+
+            except requests.RequestException as e:
+                print(f"❌ Network error on attempt {attempt + 1}: {e}")
+
+            # Wait before retrying
+            wait_time = retry_intervals[min(attempt, len(retry_intervals) - 1)]
+            print(f"⏳ Waiting {wait_time} seconds before retrying...")
+            time.sleep(wait_time)
+            attempt += 1
     
     def load_prompt_template(self) -> str:
         """Load the professional prompt template from file"""
