@@ -1,3 +1,15 @@
+from django.shortcuts import redirect
+import re
+# Redirect old /destination/{lang}-{slug} to new /destination/{lang}/{slug}
+def redirect_old_destination_url(request, lang_slug):
+    """Redirect /destination/{lang}-{slug} to /destination/{lang}/{slug}"""
+    match = re.match(r'^(?P<lang>[a-z]{2,3})-(?P<slug>.+)$', lang_slug)
+    if match:
+        lang = match.group('lang')
+        slug = match.group('slug')
+        return redirect(f'/{lang}/golf-courses/{slug}/', permanent=True)
+    # If not matching, 404
+    raise Http404('Invalid destination URL')
 from django.shortcuts import render, get_object_or_404
 from django.db import models
 from .models import Destination, DestinationGuide

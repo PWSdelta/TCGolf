@@ -18,4 +18,7 @@ urlpatterns = [
     # Multi-language routes
     path('<str:language>/', views.home, name='home_lang'),
     path('<str:language>/golf-courses/<slug:slug>/', views.destination_detail, name='destination_detail_lang'),
+
+    # Redirect old /destination/{lang}-{slug} to new /destination/{lang}/{slug}
+    path('destination/<str:lang_slug>/', views.redirect_old_destination_url, name='redirect_old_destination_url'),
 ]
