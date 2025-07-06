@@ -1,0 +1,28 @@
+{
+  "city": "Kansas City",
+  "region": "Missouri",
+  "country": "United States",
+  "timestamp": "20250705_135911",
+  "models": {
+    "flash": {
+      "usage": {
+        "prompt_tokens": 387,
+        "completion_tokens": 1340,
+        "total_tokens": 1727
+      },
+      "cost": 0.00043102500000000003,
+      "word_count": 929,
+      "char_count": 6489
+    },
+    "pro": {
+      "usage": {
+        "prompt_tokens": 387,
+        "completion_tokens": 1689,
+        "total_tokens": 2076
+      },
+      "cost": 0.00892875,
+      "word_count": 1141,
+      "char_count": 8006
+    }
+  }
+}

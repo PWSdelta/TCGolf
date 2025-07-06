@@ -27,6 +27,10 @@ class Destination(models.Model):
     # Keep the original field for backward compatibility
     article_content = models.TextField(blank=True)
 
+    # Modular guides for destinations, stored as JSON
+    # Format: {"en": {"introduction": "...", "dining": "..."}, "es": {...}}
+    modular_guides = models.JSONField(default=dict, blank=True)
+
     # Language support constants
     SUPPORTED_LANGUAGES = {
         'en': 'English',

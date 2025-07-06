@@ -5,8 +5,8 @@ from datetime import datetime
 import time  # Add this import for timing
 
 # Configuration
-GEMINI_API_KEY = "AIzaSyBVCYcGrVKNSDF-Si8tynLaEhFkqyHWI90"  # Replace with your actual API key
-PROMPT_FILE = "prompt-simplified.txt"  # Your prompt file
+GEMINI_API_KEY = "AIzaSyBVCYcGrVKNSDF-Si8tynLaEhFkqyHWI90"
+PROMPT_FILE = "prompt-simplified.txt"
 OUTPUT_DIR = "golf_guides"
 
 # Test city data
