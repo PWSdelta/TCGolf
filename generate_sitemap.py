@@ -27,10 +27,8 @@ def generate_sitemap():
         # Add all destinations
         count = 0
         for destination in Destination.objects.all():
-            # Check all languages with modular_guides or article_content_multilang
+            # Only use article_content_multilang for available languages
             lang_set = set()
-            if destination.modular_guides:
-                lang_set.update(destination.modular_guides.keys())
             if destination.article_content_multilang:
                 lang_set.update(destination.article_content_multilang.keys())
             if not lang_set:

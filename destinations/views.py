@@ -1,3 +1,38 @@
+from django.http import HttpResponse
+from django.views.decorators.http import require_GET
+# Dynamic sitemap.xml endpoint
+@require_GET
+def dynamic_sitemap_xml(request):
+    """Dynamically generate sitemap.xml for search engines."""
+    from .models import Destination
+    import xml.etree.ElementTree as ET
+    urlset = ET.Element('urlset', xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
+
+    # Homepage
+    url = ET.SubElement(urlset, 'url')
+    ET.SubElement(url, 'loc').text = 'https://tcgplex.com/'
+    ET.SubElement(url, 'changefreq').text = 'daily'
+    ET.SubElement(url, 'priority').text = '1.0'
+
+    for destination in Destination.objects.all():
+        lang_set = set()
+        if destination.article_content_multilang:
+            lang_set.update(destination.article_content_multilang.keys())
+        if not lang_set:
+            lang_set = {'en'} if destination.article_content else set()
+        for lang in lang_set:
+            slug = destination.generate_slug(language=lang)
+            if lang == 'en':
+                loc = f'https://tcgplex.com/golf-courses/{slug}/'
+            else:
+                loc = f'https://tcgplex.com/{lang}/golf-courses/{slug}/'
+            url = ET.SubElement(urlset, 'url')
+            ET.SubElement(url, 'loc').text = loc
+            ET.SubElement(url, 'changefreq').text = 'weekly'
+            ET.SubElement(url, 'priority').text = '0.8'
+
+    xml_str = ET.tostring(urlset, encoding='utf-8', method='xml')
+    return HttpResponse(xml_str, content_type='application/xml')
 from django.shortcuts import redirect
 import re
 # Redirect old /destination/{lang}-{slug} to new /destination/{lang}/{slug}

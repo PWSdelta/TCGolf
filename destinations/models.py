@@ -9,6 +9,30 @@ import json
 # Create your models here.
 
 class Destination(models.Model):
+    # ...existing fields...
+
+    class Meta:
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['name']),
+            models.Index(fields=['city']),
+            models.Index(fields=['region_or_state']),
+            models.Index(fields=['country']),
+            models.Index(fields=['id']),
+            models.Index(fields=['description']),
+            models.Index(fields=['latitude']),
+            models.Index(fields=['longitude']),
+            models.Index(fields=['article_content']),
+            models.Index(fields=['article_content_multilang']),
+            models.Index(fields=['modular_guides']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['image_url']),
+            models.Index(fields=['article_content']),
+            models.Index(fields=['article_content_multilang']),
+            models.Index(fields=['modular_guides']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['image_url']),
+        ]
     # Core location data (language-neutral)
     name = models.CharField(max_length=200)
     city = models.CharField(max_length=100)
@@ -197,6 +221,8 @@ class DestinationGuide(models.Model):
             models.Index(fields=['language_code', 'destination']),
             models.Index(fields=['destination', 'language_code']),
             models.Index(fields=['slug']),
+            models.Index(fields=['destination']),
+            models.Index(fields=['language_code']),
         ]
     
     def save(self, *args, **kwargs):
