@@ -52,12 +52,17 @@ def generate_sitemaps():
             en_urls.append(url)
     write_sitemap('sitemap_en.xml', en_urls)
 
-    # Non-English Guides: output all non-English DestinationGuides
+    # Non-English Guides: output all non-English DestinationGuides, using destination-based slug if possible
     non_en_urls = []
     for guide in DestinationGuide.objects.select_related('destination').exclude(language_code='en'):
         lang = guide.language_code
-        slug = guide.slug
-        if guide.content:
+        dest = guide.destination
+        # Prefer destination-based slug if possible
+        if dest and hasattr(dest, 'generate_slug'):
+            slug = dest.generate_slug(language=lang)
+        else:
+            slug = guide.slug
+        if guide.content and slug:
             url = f'https://tcgplex.com/{lang}/golf-courses/{slug}/'
             non_en_urls.append(url)
     write_sitemap('sitemap_non_en.xml', non_en_urls)

@@ -1,3 +1,15 @@
+from django.http import JsonResponse
+from .models import Destination, DestinationGuide
+
+# API endpoint to export all Destinations as JSON
+def export_destinations(request):
+    data = list(Destination.objects.all().values())
+    return JsonResponse(data, safe=False)
+
+# API endpoint to export all DestinationGuides as JSON
+def export_destination_guides(request):
+    data = list(DestinationGuide.objects.all().values())
+    return JsonResponse(data, safe=False)
 from django.http import HttpResponse
 from django.views.decorators.http import require_GET
 # Dynamic sitemap.xml endpoint

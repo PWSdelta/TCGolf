@@ -1,3 +1,10 @@
+from . import views
+
+urlpatterns = [
+    # ...existing urls...
+    path('api/export/destinations/', views.export_destinations, name='export_destinations'),
+    path('api/export/destination-guides/', views.export_destination_guides, name='export_destination_guides'),
+]
 from django.urls import path
 from . import views
 from .content_api import FetchWorkView, SubmitWorkView, work_status, typeahead_search
