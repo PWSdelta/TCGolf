@@ -24,12 +24,10 @@ class Destination(models.Model):
             models.Index(fields=['longitude']),
             models.Index(fields=['article_content']),
             models.Index(fields=['article_content_multilang']),
-            models.Index(fields=['modular_guides']),
             models.Index(fields=['created_at']),
             models.Index(fields=['image_url']),
             models.Index(fields=['article_content']),
             models.Index(fields=['article_content_multilang']),
-            models.Index(fields=['modular_guides']),
             models.Index(fields=['created_at']),
             models.Index(fields=['image_url']),
         ]
@@ -50,10 +48,6 @@ class Destination(models.Model):
     
     # Keep the original field for backward compatibility
     article_content = models.TextField(blank=True)
-
-    # Modular guides for destinations, stored as JSON
-    # Format: {"en": {"introduction": "...", "dining": "..."}, "es": {...}}
-    modular_guides = models.JSONField(default=dict, blank=True)
 
     # Language support constants
     SUPPORTED_LANGUAGES = {

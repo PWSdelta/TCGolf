@@ -30,7 +30,7 @@ class Command(BaseCommand):
         # Fetch destinations
         limit = options['limit']
         dry_run = options['dry_run']
-        destinations = Destination.objects.filter(~models.Q(modular_guides__has_key='en')).order_by('?')[:limit]
+# Remove modular_guides usage (legacy)
 
         if not destinations.exists():
             self.stdout.write("No destinations found.")

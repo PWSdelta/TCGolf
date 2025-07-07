@@ -84,9 +84,9 @@ class Command(BaseCommand):
             country = row_dict.get(country_col, '').strip()
             article = row_dict.get(article_col, '')
             lat, lon = self.get_coordinates(city, region, country)
-            # Use upsert (update or create) to avoid duplicates
+            # Only create if it doesn't already exist
             try:
-                obj, created = Destination.objects.update_or_create(
+                obj, created = Destination.objects.get_or_create(
                     name=f"{city}, {region}",
                     city=city,
                     region_or_state=region,
@@ -104,8 +104,8 @@ class Command(BaseCommand):
                         f'Created {city}, {region} ({lat}, {lon})'
                     ))
                 else:
-                    self.stdout.write(self.style.SUCCESS(
-                        f'Updated {city}, {region} ({lat}, {lon})'
+                    self.stdout.write(self.style.NOTICE(
+                        f'Skipped existing {city}, {region} ({lat}, {lon})'
                     ))
             except Exception as e:
                 self.stdout.write(
