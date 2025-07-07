@@ -1,10 +1,3 @@
-from . import views
-
-urlpatterns = [
-    # ...existing urls...
-    path('api/export/destinations/', views.export_destinations, name='export_destinations'),
-    path('api/export/destination-guides/', views.export_destination_guides, name='export_destination_guides'),
-]
 from django.urls import path
 from . import views
 from .content_api import FetchWorkView, SubmitWorkView, work_status, typeahead_search
@@ -12,16 +5,20 @@ from .content_api import FetchWorkView, SubmitWorkView, work_status, typeahead_s
 app_name = 'destinations'
 
 urlpatterns = [
+    # API export endpoints
+    path('api/export/destinations/', views.export_destinations, name='export_destinations'),
+    path('api/export/destination-guides/', views.export_destination_guides, name='export_destination_guides'),
+
     # Content Generation API Endpoints (before catch-all patterns)
     path('api/fetch-work/', FetchWorkView.as_view(), name='fetch_work'),
     path('api/submit-work/', SubmitWorkView.as_view(), name='submit_work'),
     path('api/work-status/', work_status, name='work_status'),
     path('api/typeahead-search/', typeahead_search, name='typeahead_search'),
-    
+
     # English (default) routes
     path('', views.home, name='home'),
     path('golf-courses/<slug:slug>/', views.destination_detail, name='destination_detail'),
-    
+
     # Multi-language routes
     path('<str:language>/', views.home, name='home_lang'),
     path('<str:language>/golf-courses/<slug:slug>/', views.destination_detail, name='destination_detail_lang'),
