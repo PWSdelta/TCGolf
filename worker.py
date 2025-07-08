@@ -13,7 +13,9 @@ Each work unit is one destination + one language, preventing race conditions
 between multiple workers and enabling immediate submission.
 
 Usage:
-    python content_worker.py --api-url http://localhost:8000 --model gemma3n:e4b
+    python worker.py --api-url http://localhost:8000 --model gemma3n:e4b
+
+    python worker.py --api-url https://tcgplex.com --model gemma3n:e4b 
 """
 
 import requests
@@ -337,6 +339,14 @@ Provide the complete translated guide in {language_name}:
         
         print(f"⏱️  Work unit processing time: {total_time:.1f} seconds")
         self.print_timing_summary()
+        
+        # Display updated work status after each guide generation
+        if submit_success:
+            print("\n" + "="*50)
+            print("📊 UPDATED WORK STATUS AFTER GUIDE GENERATION:")
+            self.get_work_status()
+            print("="*50)
+        
         return submit_success
     
     def print_timing_summary(self):
