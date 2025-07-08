@@ -184,13 +184,13 @@ def home(request, language='en'):
         # For English, show all destinations with any guides
         destinations = destinations.filter(guides__isnull=False).distinct()
     
-    # Only show destinations that have 5 or more languages
-    destinations_with_5_plus_languages = destinations.annotate(
+    # Only show destinations that have 8 or more languages
+    destinations_with_8_plus_languages = destinations.annotate(
         language_count=Count('guides__language_code', distinct=True)
-    ).filter(language_count__gte=5)
+    ).filter(language_count__gte=8)
     
     # Use the filtered destinations
-    destinations = destinations_with_5_plus_languages
+    destinations = destinations_with_8_plus_languages
     
     # Attach slug for each destination for SEO URLs
     for d in destinations:
