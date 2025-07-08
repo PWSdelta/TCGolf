@@ -59,6 +59,7 @@ def redirect_old_destination_url(request, lang_slug):
     raise Http404('Invalid destination URL')
 from django.shortcuts import render, get_object_or_404
 from django.db import models
+from django.db.models import Count
 from .models import Destination, DestinationGuide
 from django.utils.text import slugify
 from django.http import Http404
@@ -182,6 +183,14 @@ def home(request, language='en'):
     else:
         # For English, show all destinations with any guides
         destinations = destinations.filter(guides__isnull=False).distinct()
+    
+    # Only show destinations that have 5 or more languages
+    destinations_with_5_plus_languages = destinations.annotate(
+        language_count=Count('guides__language_code', distinct=True)
+    ).filter(language_count__gte=5)
+    
+    # Use the filtered destinations
+    destinations = destinations_with_5_plus_languages
     
     # Attach slug for each destination for SEO URLs
     for d in destinations:
@@ -343,3 +352,101 @@ def destination_detail(request, slug, language='en'):
         import logging
         logging.error(f"Error in destination_detail view: {e}")
         raise Http404('Unable to load destination details')
+
+
+# ============================================
+# CITY GUIDE VIEWS
+# ============================================
+
+from .models import CityGuide
+
+def city_guide_home(request):
+    """City guide listing page (English)"""
+    return city_guide_home_lang(request, 'en')
+
+def city_guide_home_lang(request, language='en'):
+    """City guide listing page for specific language"""
+    city_guides = CityGuide.objects.filter(
+        language_code=language,
+        is_published=True
+    ).select_related('destination').order_by('-is_featured', '-updated_at')
+    
+    context = {
+        'city_guides': city_guides,
+        'current_language': language,
+        'total_guides': city_guides.count(),
+    }
+    
+    return render(request, 'destinations/city_guide_home.html', context)
+
+def city_guide_detail(request, slug):
+    """City guide detail page (English)"""
+    return city_guide_detail_lang(request, slug, 'en')
+
+def city_guide_detail_lang(request, slug, language='en'):
+    """City guide detail page for specific language"""
+    try:
+        # Get the city guide
+        city_guide = get_object_or_404(
+            CityGuide.objects.select_related('destination'),
+            slug=slug,
+            language_code=language,
+            is_published=True
+        )
+        
+        # Get available languages for this destination's city guides
+        available_languages = list(
+            CityGuide.objects.filter(
+                destination=city_guide.destination,
+                is_published=True
+            ).values_list('language_code', flat=True).distinct()
+        )
+        
+        # Get related golf guide if it exists
+        golf_guide = None
+        try:
+            golf_guide = DestinationGuide.objects.get(
+                destination=city_guide.destination,
+                language_code=language
+            )
+        except DestinationGuide.DoesNotExist:
+            pass
+        
+        # Get nearby city guides (same country, different cities)
+        nearby_guides = CityGuide.objects.filter(
+            destination__country=city_guide.destination.country,
+            language_code=language,
+            is_published=True
+        ).exclude(id=city_guide.id).select_related('destination')[:6]
+        
+        # Get real-time data for this city with error handling
+        realtime_data = {}
+        try:
+            realtime_service = RealTimeDestinationData()
+            realtime_data = realtime_service.get_all_destination_data(
+                city_guide.destination.city, 
+                city_guide.destination.country
+            )
+        except Exception as e:
+            # Log the error but continue without the realtime data
+            import logging
+            logging.error(f"Error fetching realtime data for city guide: {e}")
+        
+        context = {
+            'city_guide': city_guide,
+            'destination': city_guide.destination,
+            'golf_guide': golf_guide,
+            'current_language': language,
+            'available_languages': available_languages,
+            'nearby_guides': nearby_guides,
+            'sections_summary': city_guide.get_sections_summary(),
+            'reading_time': city_guide.get_reading_time(),
+            'realtime_data': realtime_data,
+        }
+        
+        return render(request, 'destinations/city_guide_detail.html', context)
+        
+    except Exception as e:
+        import logging
+        logging.error(f"Error in city_guide_detail view: {e}")
+        raise Http404('City guide not found')

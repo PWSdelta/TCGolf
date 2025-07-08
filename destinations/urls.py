@@ -18,10 +18,16 @@ urlpatterns = [
     # English (default) routes
     path('', views.home, name='home'),
     path('golf-courses/<slug:slug>/', views.destination_detail, name='destination_detail'),
+    
+    # City Guide routes
+    path('explore/', views.city_guide_home, name='city_guide_home'),
+    path('explore/<slug:slug>/', views.city_guide_detail, name='city_guide_detail'),
 
     # Multi-language routes
     path('<str:language>/', views.home, name='home_lang'),
     path('<str:language>/golf-courses/<slug:slug>/', views.destination_detail, name='destination_detail_lang'),
+    path('explore/<str:language>/', views.city_guide_home_lang, name='city_guide_home_lang'),
+    path('explore/<str:language>/<slug:slug>/', views.city_guide_detail_lang, name='city_guide_detail_lang'),
 
     # Redirect old /destination/{lang}-{slug} to new /destination/{lang}/{slug}
     path('destination/<str:lang_slug>/', views.redirect_old_destination_url, name='redirect_old_destination_url'),

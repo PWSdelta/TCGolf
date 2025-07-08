@@ -1,0 +1,717 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ city_guide.destination.city }} City Guide - {{ city_guide.destination.country }} | Explore Cities{% endblock %}
+
+{% block meta_description %}{{ city_guide.meta_description|default:"Complete city guide for "|add:city_guide.destination.city|add:", "|add:city_guide.destination.country|add:". Neighborhoods, attractions, dining, nightlife, and travel tips." }}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumbs -->
+<div class="container py-1">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb mb-2">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      {% if current_language == 'en' %}
+        <li class="breadcrumb-item"><a href="/explore/">Explore Cities</a></li>
+      {% else %}
+        <li class="breadcrumb-item"><a href="/explore/{{ current_language }}/">Explore Cities</a></li>
+      {% endif %}
+      <li class="breadcrumb-item active" aria-current="page">{{ city_guide.destination.city }}</li>
+    </ol>
+  </nav>
+</div>
+
+<!-- Hero Section -->
+<div class="city-guide-hero">
+  <div class="container py-3">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <div class="city-header text-center">
+          <h1 class="city-title">{{ city_guide.destination.city }}, {{ city_guide.destination.country }}</h1>
+          <p class="city-subtitle">Complete City Guide</p>
+          
+          <!-- Quick Stats -->
+          <div class="guide-stats">
+            <span class="stat-badge">{{ reading_time }} min read</span>
+            <span class="stat-badge">{{ city_guide.word_count }} words</span>
+            {% if sections_summary %}
+              {% for section in sections_summary %}
+                <span class="stat-badge">{{ section }}</span>
+              {% endfor %}
+            {% endif %}
+          </div>
+          
+          <!-- Language Switcher -->
+          {% if available_languages|length > 1 %}
+          <div class="language-switcher mt-3">
+            {% for lang_code in available_languages %}
+              {% if lang_code == 'en' %}
+                <a href="/explore/{{ city_guide.destination.city|lower|slugify }}-{{ city_guide.destination.country|lower|slugify }}/" 
+                   class="language-tab {% if current_language == lang_code %}active{% endif %}">
+                  English
+                </a>
+              {% else %}
+                <a href="/explore/{{ lang_code }}/{{ city_guide.destination.city|lower|slugify }}-{{ city_guide.destination.country|lower|slugify }}/" 
+                   class="language-tab {% if current_language == lang_code %}active{% endif %}">
+                  {{ lang_code|upper }}
+                </a>
+              {% endif %}
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="city-guide-content">
+  <div class="container">
+    <div class="row">
+      <!-- Main Content -->
+      <div class="col-lg-8">
+        
+        <!-- Overview Section -->
+        {% if city_guide.overview %}
+        <section class="content-section">
+          <h2>City Overview</h2>
+          <div class="overview-content">
+            {{ city_guide.overview|linebreaks }}
+          </div>
+        </section>
+        {% endif %}
+        
+        <!-- Neighborhoods Section -->
+        {% if city_guide.neighborhoods %}
+        <section class="content-section">
+          <h2>Neighborhoods & Districts</h2>
+          <div class="neighborhoods-grid">
+            {% for name, info in city_guide.neighborhoods.items %}
+            <div class="neighborhood-card">
+              <h3>{{ name }}</h3>
+              {% if info.description %}
+                <p>{{ info.description }}</p>
+              {% endif %}
+              {% if info.highlights %}
+                <div class="highlights">
+                  <strong>Highlights:</strong> {{ info.highlights }}
+                </div>
+              {% endif %}
+              {% if info.best_for %}
+                <div class="best-for">
+                  <strong>Best for:</strong> {{ info.best_for }}
+                </div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+        
+        <!-- Attractions Section -->
+        {% if city_guide.attractions %}
+        <section class="content-section">
+          <h2>Must-See Attractions</h2>
+          <div class="attractions-list">
+            {% for name, info in city_guide.attractions.items %}
+            <div class="attraction-item">
+              <h4>{{ name }}</h4>
+              {% if info.description %}
+                <p>{{ info.description }}</p>
+              {% endif %}
+              {% if info.category %}
+                <span class="category-badge">{{ info.category }}</span>
+              {% endif %}
+              {% if info.tips %}
+                <div class="tips">
+                  <strong>Tip:</strong> {{ info.tips }}
+                </div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+        
+        <!-- Dining Section -->
+        {% if city_guide.dining %}
+        <section class="content-section">
+          <h2>Dining & Cuisine</h2>
+          <div class="dining-grid">
+            {% for name, info in city_guide.dining.items %}
+            <div class="dining-card">
+              <h4>{{ name }}</h4>
+              {% if info.description %}
+                <p>{{ info.description }}</p>
+              {% endif %}
+              <div class="dining-meta">
+                {% if info.cuisine_type %}
+                  <span class="cuisine-type">{{ info.cuisine_type }}</span>
+                {% endif %}
+                {% if info.price_range %}
+                  <span class="price-range">{{ info.price_range }}</span>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+        
+        <!-- More sections can be added similarly -->
+        
+        <!-- Golf Connection -->
+        {% if golf_guide %}
+        <section class="content-section golf-connection">
+          <h2>🏌️ Golf in {{ city_guide.destination.city }}</h2>
+          {% if city_guide.golf_summary %}
+            <p>{{ city_guide.golf_summary|linebreaks }}</p>
+          {% endif %}
+          <a href="{{ golf_guide.get_absolute_url }}" class="golf-guide-link">
+            View Complete Golf Guide for {{ city_guide.destination.city }} →
+          </a>
+        </section>
+        {% endif %}
+        
+      </div>
+      
+      <!-- Sidebar -->
+      <div class="col-lg-4">
+        <div class="city-guide-sidebar">
+          
+          <!-- Quick Facts -->
+          <div class="sidebar-section">
+            <h3>Quick Facts</h3>
+            <ul class="fact-list">
+              <li><strong>Country:</strong> {{ destination.country }}</li>
+              <li><strong>Region:</strong> {{ destination.region_or_state }}</li>
+              {% if destination.latitude and destination.longitude %}
+                <li><strong>Coordinates:</strong> {{ destination.latitude|floatformat:2 }}, {{ destination.longitude|floatformat:2 }}</li>
+              {% endif %}
+              <li><strong>Last Updated:</strong> {{ city_guide.updated_at|date:"M j, Y" }}</li>
+            </ul>
+          </div>
+          
+          <!-- Real-time Data -->
+          {% if realtime_data %}
+          <div class="sidebar-section realtime-section">
+            <h3 class="sidebar-title">
+              <span class="icon">🌐</span>
+              Current Conditions
+            </h3>
+            
+            <!-- Weather -->
+            {% if realtime_data.weather %}
+            <div class="weather-widget">
+              <div class="weather-header">
+                <span class="weather-icon">{{ realtime_data.weather.icon }}</span>
+                <div class="weather-main">
+                  <div class="temperature">
+                    <span class="temp-c">{{ realtime_data.weather.temperature_c }}°C</span>
+                    <span class="temp-f">({{ realtime_data.weather.temperature_f }}°F)</span>
+                  </div>
+                  <div class="condition">{{ realtime_data.weather.condition }}</div>
+                </div>
+              </div>
+              
+              <div class="weather-details">
+                <div class="weather-item">
+                  <span class="label">Feels like:</span>
+                  <span class="value">{{ realtime_data.weather.feels_like_c }}°C</span>
+                </div>
+                <div class="weather-item">
+                  <span class="label">Humidity:</span>
+                  <span class="value">{{ realtime_data.weather.humidity }}%</span>
+                </div>
+                <div class="weather-item">
+                  <span class="label">Wind:</span>
+                  <span class="value">{{ realtime_data.weather.wind_speed_kmh }} km/h</span>
+                </div>
+                <div class="weather-item">
+                  <span class="label">UV Index:</span>
+                  <span class="value">{{ realtime_data.weather.uv_index }}</span>
+                </div>
+                <div class="weather-item">
+                  <span class="label">Visibility:</span>
+                  <span class="value">{{ realtime_data.weather.visibility_km }} km</span>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+            
+            <!-- Time & Date -->
+            {% if realtime_data.timezone %}
+            <div class="time-widget">
+              <div class="time-header">
+                <span class="time-icon">🕐</span>
+                <div class="time-main">
+                  <div class="local-time">{{ realtime_data.timezone.local_time }}</div>
+                  <div class="local-date">{{ realtime_data.timezone.local_date }}</div>
+                </div>
+              </div>
+              <div class="time-details">
+                <div class="time-item">
+                  <span class="label">Timezone:</span>
+                  <span class="value">{{ realtime_data.timezone.timezone }}</span>
+                </div>
+                <div class="time-item">
+                  <span class="label">UTC Offset:</span>
+                  <span class="value">{{ realtime_data.timezone.utc_offset }}</span>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+            
+            <!-- Exchange Rates -->
+            {% if realtime_data.exchange %}
+            <div class="exchange-widget">
+              <div class="exchange-header">
+                <span class="exchange-icon">💱</span>
+                <div class="exchange-main">
+                  <div class="currency-name">{{ realtime_data.exchange.currency }}</div>
+                  <div class="exchange-note">Current Rates</div>
+                </div>
+              </div>
+              <div class="exchange-rates">
+                <div class="rate-item">
+                  <span class="label">1 USD =</span>
+                  <span class="value">{{ realtime_data.exchange.currency_symbol }}{{ realtime_data.exchange.usd_to_local|floatformat:2 }}</span>
+                </div>
+                {% if realtime_data.exchange.eur_to_local %}
+                <div class="rate-item">
+                  <span class="label">1 EUR =</span>
+                  <span class="value">{{ realtime_data.exchange.currency_symbol }}{{ realtime_data.exchange.eur_to_local|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+                {% if realtime_data.exchange.gbp_to_local %}
+                <div class="rate-item">
+                  <span class="label">1 GBP =</span>
+                  <span class="value">{{ realtime_data.exchange.currency_symbol }}{{ realtime_data.exchange.gbp_to_local|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+              </div>
+              <div class="exchange-updated">
+                <small>Updated: {{ realtime_data.exchange.last_updated }}</small>
+              </div>
+            </div>
+            {% endif %}
+            
+          </div>
+          {% endif %}
+          
+          <!-- Navigation -->
+          <div class="sidebar-section">
+            <h3>Guide Sections</h3>
+            <ul class="section-nav">
+              {% if city_guide.overview %}<li><a href="#overview">City Overview</a></li>{% endif %}
+              {% if city_guide.neighborhoods %}<li><a href="#neighborhoods">Neighborhoods</a></li>{% endif %}
+              {% if city_guide.attractions %}<li><a href="#attractions">Attractions</a></li>{% endif %}
+              {% if city_guide.dining %}<li><a href="#dining">Dining</a></li>{% endif %}
+              {% if city_guide.nightlife %}<li><a href="#nightlife">Nightlife</a></li>{% endif %}
+              {% if city_guide.shopping %}<li><a href="#shopping">Shopping</a></li>{% endif %}
+              {% if city_guide.transportation %}<li><a href="#transportation">Transportation</a></li>{% endif %}
+              {% if city_guide.accommodation %}<li><a href="#accommodation">Where to Stay</a></li>{% endif %}
+            </ul>
+          </div>
+          
+          <!-- Related Guides -->
+          {% if nearby_guides %}
+          <div class="sidebar-section">
+            <h3>Other Cities in {{ destination.country }}</h3>
+            <ul class="related-guides">
+              {% for guide in nearby_guides %}
+                <li>
+                  <a href="{{ guide.get_absolute_url }}">
+                    {{ guide.destination.city }}
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* City Guide Specific Styles */
+.city-guide-hero {
+  background: linear-gradient(135deg, #2d4a3e 0%, #4a7c59 50%, #d4af37 100%);
+  color: white;
+  padding: 2rem 0;
+}
+
+.city-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.city-subtitle {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  margin-bottom: 1rem;
+}
+
+.guide-stats {
+  margin: 1rem 0;
+}
+
+.stat-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  margin: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.language-switcher {
+  margin-top: 1rem;
+}
+
+.language-tab {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  margin: 0.25rem;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.language-tab:hover,
+.language-tab.active {
+  background: rgba(255,255,255,0.3);
+  color: white;
+}
+
+.city-guide-content {
+  padding: 2rem 0;
+}
+
+.content-section {
+  margin-bottom: 3rem;
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.content-section h2 {
+  color: #2d4a3e;
+  border-bottom: 2px solid #d4af37;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.neighborhoods-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.neighborhood-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 1.5rem;
+  background: #f8f9fa;
+}
+
+.neighborhood-card h3 {
+  color: #2d4a3e;
+  margin-bottom: 1rem;
+}
+
+.highlights, .best-for {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.attraction-item {
+  border-bottom: 1px solid #eee;
+  padding: 1rem 0;
+}
+
+.attraction-item:last-child {
+  border-bottom: none;
+}
+
+.category-badge {
+  background: #4a7c59;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 15px;
+  font-size: 0.8rem;
+}
+
+.dining-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.dining-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.dining-meta {
+  margin-top: 0.5rem;
+}
+
+.cuisine-type, .price-range {
+  display: inline-block;
+  background: #f0f0f0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  margin-right: 0.5rem;
+}
+
+.golf-connection {
+  background: linear-gradient(135deg, #f8f6f0 0%, #e8f5e8 100%);
+  border-left: 4px solid #d4af37;
+}
+
+.golf-guide-link {
+  display: inline-block;
+  background: #2d4a3e;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: 500;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.golf-guide-link:hover {
+  background: #1a3d1a;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.city-guide-sidebar {
+  position: sticky;
+  top: 2rem;
+}
+
+.sidebar-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-bottom: 1.5rem;
+}
+
+.sidebar-section h3 {
+  color: #2d4a3e;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.fact-list {
+  list-style: none;
+  padding: 0;
+}
+
+.fact-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.fact-list li:last-child {
+  border-bottom: none;
+}
+
+.section-nav {
+  list-style: none;
+  padding: 0;
+}
+
+.section-nav a {
+  display: block;
+  padding: 0.5rem 0;
+  color: #2d4a3e;
+  text-decoration: none;
+  border-bottom: 1px solid #eee;
+}
+
+.section-nav a:hover {
+  color: #d4af37;
+  padding-left: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.related-guides {
+  list-style: none;
+  padding: 0;
+}
+
+.related-guides a {
+  display: block;
+  padding: 0.5rem 0;
+  color: #2d4a3e;
+  text-decoration: none;
+}  .related-guides a:hover {
+    color: #d4af37;
+  }
+
+  /* Real-time Data Widgets */
+  .realtime-section {
+    background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+    border-left: 4px solid #2196f3;
+  }
+
+  .realtime-section .sidebar-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .weather-widget,
+  .time-widget,
+  .exchange-widget {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+
+  .weather-header,
+  .time-header,
+  .exchange-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .weather-icon,
+  .time-icon,
+  .exchange-icon {
+    font-size: 1.5rem;
+  }
+
+  .weather-main .temperature {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d4a3e;
+  }
+
+  .weather-main .temp-f {
+    font-size: 0.9rem;
+    color: #666;
+  }
+
+  .weather-main .condition {
+    font-size: 0.9rem;
+    color: #666;
+  }
+
+  .time-main .local-time {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2d4a3e;
+  }
+
+  .time-main .local-date {
+    font-size: 0.9rem;
+    color: #666;
+  }
+
+  .exchange-main .currency-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d4a3e;
+  }
+
+  .exchange-main .exchange-note {
+    font-size: 0.9rem;
+    color: #666;
+  }
+
+  .weather-details,
+  .time-details,
+  .exchange-rates {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .weather-item,
+  .time-item,
+  .rate-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .weather-item:last-child,
+  .time-item:last-child,
+  .rate-item:last-child {
+    border-bottom: none;
+  }
+
+  .weather-item .label,
+  .time-item .label,
+  .rate-item .label {
+    font-size: 0.85rem;
+    color: #666;
+  }
+
+  .weather-item .value,
+  .time-item .value,
+  .rate-item .value {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #2d4a3e;
+  }
+
+  .exchange-updated {
+    margin-top: 0.5rem;
+    text-align: center;
+  }
+
+  .exchange-updated small {
+    color: #999;
+    font-size: 0.75rem;
+  }
+
+  @media (max-width: 768px) {
+    .weather-details,
+    .time-details,
+    .exchange-rates {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+  .city-title {
+    font-size: 2rem;
+  }
+  
+  .neighborhoods-grid,
+  .dining-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .content-section {
+    padding: 1rem;
+  }
+}
+</style>
+
+{% endblock %}

@@ -73,9 +73,9 @@
 {% endblock %}
 {% block content %}
 <!-- Breadcrumbs -->
-<div class="container py-2">
+<div class="container py-1">
   <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
+    <ol class="breadcrumb mb-2">
       <li class="breadcrumb-item"><a href="/">Home</a></li>
       <li class="breadcrumb-item"><a href="/?q={{ destination.country|urlencode }}">{{ destination.country }}</a></li>
       <li class="breadcrumb-item active" aria-current="page">{{ destination.city }}</li>
@@ -85,7 +85,7 @@
 
 <!-- Hero Section -->
 <div class="destination-hero">
-  <div class="container py-4">
+  <div class="container py-3">
     <div class="row justify-content-center">
       <div class="col-lg-10">
         <div class="destination-header text-center">

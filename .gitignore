@@ -229,3 +229,4 @@ logs/
 *.joblib
 models/
 model_cache/
+generated_cityguides/
