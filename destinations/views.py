@@ -162,13 +162,16 @@ def improve_content_formatting(text):
 @cache_page(60 * 15)  # Cache for 15 minutes
 @vary_on_headers('Accept-Language')  # Vary cache by language headers
 def home(request, language='en'):
-    """Home page with optional language support"""
+    """Modern home page with geolocation-based recommendations"""
     # Activate the requested language
     if language != 'en':
         activate(language)
     
     q = request.GET.get('q', '')
+    
+    # Get all destinations with guides for the current language
     destinations = Destination.objects.all().order_by('name')
+    
     if q:
         destinations = destinations.filter(
             models.Q(name__icontains=q) |
@@ -184,19 +187,11 @@ def home(request, language='en'):
         # For English, show all destinations with any guides
         destinations = destinations.filter(guides__isnull=False).distinct()
     
-    # Only show destinations that have 8 or more languages
-    destinations_with_8_plus_languages = destinations.annotate(
-        language_count=Count('guides__language_code', distinct=True)
-    ).filter(language_count__gte=8)
-    
-    # Use the filtered destinations
-    destinations = destinations_with_8_plus_languages
-    
     # Attach slug for each destination for SEO URLs
     for d in destinations:
         d.slug = d.generate_slug(language)
     
-    # Prepare a serializable list for the map
+    # Prepare a serializable list for the map and geolocation features
     destinations_json = [
         {
             'id': d.id,
@@ -205,18 +200,27 @@ def home(request, language='en'):
             'region_or_state': d.region_or_state,
             'country': d.country,
             'slug': d.slug,
-            'latitude': d.latitude,
-            'longitude': d.longitude,
+            'latitude': float(d.latitude) if d.latitude else None,
+            'longitude': float(d.longitude) if d.longitude else None,
             'absolute_url': d.get_absolute_url(language),
-        } for d in destinations
+        } for d in destinations if d.latitude and d.longitude
     ]
     
-    # Get available languages across all destinations
+    # Get stats for the hero section
+    total_destinations = destinations.count()
+    total_countries = destinations.values('country').distinct().count()
     available_languages = list(DestinationGuide.objects.values_list('language_code', flat=True).distinct())
+    
+    # Featured destinations (top 6 for grid display)
+    featured_destinations = destinations[:6]
     
     return render(request, 'destinations/home.html', {
         'destinations': destinations,
         'destinations_json': destinations_json,
+        'featured_destinations': featured_destinations,
+        'total_destinations': total_destinations,
+        'total_countries': total_countries,
+        'total_languages': len(available_languages),
         'current_language': language,
         'available_languages': available_languages,
     })

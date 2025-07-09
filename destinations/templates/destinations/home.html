@@ -3,11 +3,11 @@
 {% load cache %}
 {% load destination_extras %}
 
-{% block title %}Golf Destination Explorer - Discover the World's Best Golf Courses & Destinations{% endblock %}
+{% block title %}Golf Destination Explorer - Discover the World's Best Golf Courses Near You{% endblock %}
 
-{% block meta_description %}Discover amazing golf destinations worldwide. Explore detailed guides for top golf courses, resorts, and travel destinations. Find your perfect golf vacation with insider tips and comprehensive information.{% endblock %}
+{% block meta_description %}Discover amazing golf destinations worldwide. Find golf courses and resorts near you with our geolocation feature. Explore {{ total_destinations }} destinations across {{ total_countries }} countries with expert guides and insider tips.{% endblock %}
 
-{% block meta_keywords %}golf destinations, golf courses, golf travel, golf resorts, golf vacation, golf guides, best golf courses, golf tourism, golf trips, golf holidays{% endblock %}
+{% block meta_keywords %}golf destinations, golf courses near me, golf travel, golf resorts, golf vacation, golf guides, best golf courses, golf tourism, golf trips{% endblock %}
 
 {% block structured_data %}
 {
@@ -22,15 +22,15 @@
     "query-input": "required name=search_term_string"
   }
 }
-{% if destinations %}
+{% if featured_destinations %}
 {
   "@context": "https://schema.org",
   "@type": "ItemList",
-  "name": "Golf Destinations",
+  "name": "Featured Golf Destinations",
   "description": "Collection of world-class golf destinations and courses",
-  "numberOfItems": {{ destinations|length }},
+  "numberOfItems": {{ featured_destinations|length }},
   "itemListElement": [
-    {% for destination in destinations|slice:":10" %}
+    {% for destination in featured_destinations %}
     {
       "@type": "Place",
       "name": "{{ destination.name|escapejs }}",
@@ -49,119 +49,850 @@
 {% endblock %}
 
 {% block content %}
-<div class="hero-section">
-  <div class="container text-center">
-    <h1 class="hero-title">Discover Amazing Golf Destinations</h1>
-    <p class="hero-subtitle">Explore the world's finest golf courses and destinations with detailed guides and insider tips</p>
-  </div>
-</div>
-
-<div class="container">
-  <div class="search-container">
-    <form method="get" id="search-form">
-      <div class="row align-items-center">
-        <div class="col-md-9">
-          <div class="typeahead-wrapper">
-            <input type="text" name="q" class="form-control search-input" 
-                   placeholder="🔍 Search destinations by name or location..." 
-                   value="{{ request.GET.q }}"
-                   id="search-input"
-                   autocomplete="off">
-            <div class="typeahead-dropdown" id="typeahead-dropdown"></div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <button class="btn search-btn w-100 mt-2 mt-md-0" type="submit" id="search-btn">
-            <span class="btn-text">Search</span>
-            <span class="loading d-none"></span>
+<!-- Hero Section with Geolocation -->
+<section class="hero-modern">
+  <div class="hero-background"></div>
+  <div class="container hero-content">
+    <div class="row justify-content-center text-center">
+      <div class="col-lg-8">
+        <h1 class="hero-title-modern">
+          Discover World-Class <span class="text-golf-gold">Golf Destinations</span>
+        </h1>
+        <p class="hero-subtitle-modern">
+          Find amazing golf courses and resorts near you or explore destinations worldwide
+        </p>
+        
+        <!-- Geolocation Feature -->
+        <div class="geolocation-section">
+          <button id="find-nearby-btn" class="btn btn-geolocation">
+            <i class="location-icon">📍</i>
+            <span class="btn-text">Find Golf Destinations Near Me</span>
+            <span class="loading-spinner d-none">🔄</span>
           </button>
+          <div id="location-results" class="location-results d-none"></div>
+        </div>
+        
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+          <div class="stat-item">
+            <div class="stat-number">{{ total_destinations }}</div>
+            <div class="stat-label">Destinations</div>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <div class="stat-number">{{ total_countries }}</div>
+            <div class="stat-label">Countries</div>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <div class="stat-number">{{ total_languages }}</div>
+            <div class="stat-label">Languages</div>
+          </div>
         </div>
       </div>
-    </form>
-  </div>
-
-  <div class="map-container">
-    <div id="map" style="height: 500px;"></div>
-  </div>
-
-  <div class="destinations-section">
-    <div class="text-center mb-5">
-      <h2 style="color: var(--golf-dark); font-weight: 700; font-size: 2.5rem; margin-bottom: 1rem;">
-        Featured Destinations
-      </h2>
-      <p style="color: #6c757d; font-size: 1.1rem; max-width: 500px; margin: 0 auto;">
-        Discover world-class golf destinations with breathtaking courses and unforgettable experiences
-      </p>
-    </div>
-    <div class="destinations-grid">
-      {% if not request.GET.q %}
-        {% for dest in destinations %}
-          <a href="{{ dest.get_absolute_url }}" class="destination-card-link">
-            <div class="destination-card">
-              <div class="image-placeholder">
-                <div class="golf-icon">
-                  ⛳
-                  <div class="travel-icon">✈️</div>
-                  <div class="travel-message">Let's travel there!</div>
-                </div>
-                <div class="destination-preview">
-                  <h3 class="destination-name">{{ dest.name }}</h3>
-                  <p class="destination-location">
-                    <span class="location-icon">📍</span>
-                    {{ dest.city }}, {{ dest.region_or_state }}
-                  </p>
-                  <p class="destination-country">
-                    {{ dest.country|country_flag }} {{ dest.country }}
-                  </p>
-                </div>
-              </div>
-              <div class="card-overlay">
-                <span class="view-details">✈️ Explore Destination →</span>
-              </div>
-            </div>
-          </a>
-        {% empty %}
-          <div class="col-12 text-center py-5">
-            <h4 style="color: #6c757d;">No destinations found</h4>
-            <p>Try adjusting your search criteria</p>
-          </div>
-        {% endfor %}
-      {% else %}
-        {% for dest in destinations %}
-          <a href="{{ dest.get_absolute_url }}" class="destination-card-link">
-            <div class="destination-card">
-              <div class="image-placeholder">
-                <div class="golf-icon">
-                  ⛳
-                  <div class="travel-icon">✈️</div>
-                  <div class="travel-message">Let's travel there!</div>
-                </div>
-                <div class="destination-preview">
-                  <h3 class="destination-name">{{ dest.name }}</h3>
-                  <p class="destination-location">
-                    <span class="location-icon">📍</span>
-                    {{ dest.city }}, {{ dest.region_or_state }}
-                  </p>
-                  <p class="destination-country">
-                    {{ dest.country|country_flag }} {{ dest.country }}
-                  </p>
-                </div>
-              </div>
-              <div class="card-overlay">
-                <span class="view-details">✈️ Explore Destination →</span>
-              </div>
-            </div>
-          </a>
-        {% empty %}
-          <div class="col-12 text-center py-5">
-            <h4 style="color: #6c757d;">No destinations found</h4>
-            <p>Try adjusting your search criteria</p>
-          </div>
-        {% endfor %}
-      {% endif %}
     </div>
   </div>
-</div>
+</section>
+
+<!-- Search Section -->
+<section class="search-section">
+  <div class="container">
+    <div class="search-container-modern">
+      <form method="get" id="search-form" class="search-form-modern">
+        <div class="search-input-group">
+          <div class="search-icon">🔍</div>
+          <input type="text" name="q" class="search-input-modern" 
+                 placeholder="Search destinations by name or location..." 
+                 value="{{ request.GET.q }}"
+                 id="search-input"
+                 autocomplete="off">
+          <button class="search-btn-modern" type="submit" id="search-btn">
+            <span class="btn-text">Search</span>
+            <span class="loading d-none">⏳</span>
+          </button>
+        </div>
+        <div class="typeahead-dropdown" id="typeahead-dropdown"></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Destinations -->
+{% if not request.GET.q %}
+<section class="featured-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">Featured Golf Destinations</h2>
+      <p class="section-subtitle">Handpicked destinations offering exceptional golf experiences</p>
+    </div>
+    
+    <div class="destinations-grid-modern">
+      {% for dest in featured_destinations %}
+        <a href="{{ dest.get_absolute_url }}" class="destination-card-modern">
+          <div class="card-image">
+            <div class="golf-icon-large">⛳</div>
+            <div class="card-overlay">
+              <span class="explore-btn">Explore Destination →</span>
+            </div>
+          </div>
+          <div class="card-content">
+            <h3 class="destination-name">{{ dest.name }}</h3>
+            <p class="destination-location">
+              <span class="location-pin">📍</span>
+              {{ dest.city }}, {{ dest.region_or_state }}
+            </p>
+            <p class="destination-country">
+              {{ dest.country|country_flag }} {{ dest.country }}
+            </p>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+    
+    <div class="text-center mt-5">
+      <a href="#" id="view-all-btn" class="btn btn-outline-golf">
+        View All {{ total_destinations }} Destinations
+      </a>
+    </div>
+  </div>
+</section>
+{% else %}
+<!-- Search Results -->
+<section class="search-results-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">Search Results for "{{ request.GET.q }}"</h2>
+      <p class="section-subtitle">{{ destinations|length }} destination{{ destinations|length|pluralize }} found</p>
+    </div>
+    
+    <div class="destinations-grid-modern">
+      {% for dest in destinations %}
+        <a href="{{ dest.get_absolute_url }}" class="destination-card-modern">
+          <div class="card-image">
+            <div class="golf-icon-large">⛳</div>
+            <div class="card-overlay">
+              <span class="explore-btn">Explore Destination →</span>
+            </div>
+          </div>
+          <div class="card-content">
+            <h3 class="destination-name">{{ dest.name }}</h3>
+            <p class="destination-location">
+              <span class="location-pin">📍</span>
+              {{ dest.city }}, {{ dest.region_or_state }}
+            </p>
+            <p class="destination-country">
+              {{ dest.country|country_flag }} {{ dest.country }}
+            </p>
+          </div>
+        </a>
+      {% empty %}
+        <div class="no-results">
+          <div class="no-results-icon">🔍</div>
+          <h3>No destinations found</h3>
+          <p>Try adjusting your search criteria or browse our featured destinations above</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Interactive Map Section -->
+<section class="map-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">Explore on the Map</h2>
+      <p class="section-subtitle">Discover golf destinations around the world</p>
+    </div>
+    <div class="map-container-modern">
+      <div id="map" class="interactive-map"></div>
+    </div>
+  </div>
+</section>
+
+<style>
+/* Modern Hero Section */
+.hero-modern {
+  position: relative;
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--golf-dark) 0%, var(--golf-green) 50%, var(--golf-light-green) 100%);
+}
+
+.hero-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="golf" patternUnits="userSpaceOnUse" width="20" height="20"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23golf)"/></svg>') repeat;
+  opacity: 0.3;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-title-modern {
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+}
+
+.text-golf-gold {
+  color: var(--golf-gold);
+}
+
+.hero-subtitle-modern {
+  font-size: 1.3rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 3rem;
+  font-weight: 400;
+}
+
+/* Geolocation Button */
+.geolocation-section {
+  margin-bottom: 3rem;
+}
+
+.btn-geolocation {
+  background: var(--golf-gold);
+  border: none;
+  color: var(--golf-dark);
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 50px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
+}
+
+.btn-geolocation:hover {
+  background: #e6c547;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(212, 175, 55, 0.4);
+}
+
+.location-icon {
+  margin-right: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Stats Bar */
+.stats-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 1.5rem 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--golf-gold);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 0.25rem;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Search Section */
+.search-section {
+  padding: 4rem 0;
+  background: var(--golf-cream);
+}
+
+.search-container-modern {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.search-input-group {
+  position: relative;
+  background: white;
+  border-radius: 50px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+}
+
+.search-icon {
+  padding: 0 1rem;
+  color: #999;
+  font-size: 1.2rem;
+}
+
+.search-input-modern {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 1rem 0;
+  font-size: 1.1rem;
+  background: transparent;
+}
+
+.search-btn-modern {
+  background: var(--golf-green);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 40px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.search-btn-modern:hover {
+  background: var(--golf-dark);
+  transform: scale(1.05);
+}
+
+/* Featured Section */
+.featured-section, .search-results-section {
+  padding: 5rem 0;
+  background: white;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--golf-dark);
+  margin-bottom: 1rem;
+}
+
+.section-subtitle {
+  font-size: 1.2rem;
+  color: #666;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Destinations Grid */
+.destinations-grid-modern {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.destination-card-modern {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.destination-card-modern:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  text-decoration: none;
+  color: inherit;
+}
+
+.card-image {
+  position: relative;
+  height: 200px;
+  background: linear-gradient(135deg, var(--golf-light-green), var(--golf-green));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.golf-icon-large {
+  font-size: 4rem;
+  opacity: 0.7;
+}
+
+.card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.destination-card-modern:hover .card-overlay {
+  opacity: 1;
+}
+
+.explore-btn {
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.card-content {
+  padding: 1.5rem;
+}
+
+.destination-name {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--golf-dark);
+  margin-bottom: 0.5rem;
+}
+
+.destination-location {
+  color: #666;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.location-pin {
+  margin-right: 0.25rem;
+}
+
+.destination-country {
+  color: #888;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Buttons */
+.btn-outline-golf {
+  border: 2px solid var(--golf-green);
+  color: var(--golf-green);
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  border-radius: 50px;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-golf:hover {
+  background: var(--golf-green);
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Map Section */
+.map-section {
+  padding: 5rem 0;
+  background: var(--golf-cream);
+}
+
+.map-container-modern {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+}
+
+.interactive-map {
+  height: 500px;
+  width: 100%;
+}
+
+/* No Results */
+.no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.no-results-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.no-results h3 {
+  color: var(--golf-dark);
+  margin-bottom: 1rem;
+}
+
+.no-results p {
+  color: #666;
+}
+
+/* Location Results */
+.location-results {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-title-modern {
+    font-size: 2.5rem;
+  }
+  
+  .hero-subtitle-modern {
+    font-size: 1.1rem;
+  }
+  
+  .stats-bar {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .stat-divider {
+    width: 40px;
+    height: 1px;
+  }
+  
+  .destinations-grid-modern {
+    grid-template-columns: 1fr;
+  }
+  
+  .section-title {
+    font-size: 2rem;
+  }
+}
+
+/* Typeahead dropdown */
+.typeahead-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 0.5rem;
+}
+
+.typeahead-item {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.typeahead-item:hover {
+  background: var(--golf-cream);
+}
+
+.typeahead-item:last-child {
+  border-bottom: none;
+}
+</style>
+
+<script>
+// Geolocation functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const findNearbyBtn = document.getElementById('find-nearby-btn');
+    const locationResults = document.getElementById('location-results');
+    const btnText = findNearbyBtn.querySelector('.btn-text');
+    const loadingSpinner = findNearbyBtn.querySelector('.loading-spinner');
+    
+    // Destinations data from Django
+    const destinations = {{ destinations_json|safe }};
+    
+    findNearbyBtn.addEventListener('click', function() {
+        if (!navigator.geolocation) {
+            alert('Geolocation is not supported by this browser.');
+            return;
+        }
+        
+        // Show loading state
+        btnText.classList.add('d-none');
+        loadingSpinner.classList.remove('d-none');
+        findNearbyBtn.disabled = true;
+        
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const userLat = position.coords.latitude;
+                const userLon = position.coords.longitude;
+                
+                // Calculate distances and find nearby destinations
+                const nearbyDestinations = destinations
+                    .filter(dest => dest.latitude && dest.longitude)
+                    .map(dest => {
+                        const distance = calculateDistance(userLat, userLon, dest.latitude, dest.longitude);
+                        return { ...dest, distance: distance };
+                    })
+                    .sort((a, b) => a.distance - b.distance)
+                    .slice(0, 5); // Top 5 nearest
+                
+                displayNearbyResults(nearbyDestinations, userLat, userLon);
+                
+                // Reset button state
+                btnText.classList.remove('d-none');
+                loadingSpinner.classList.add('d-none');
+                findNearbyBtn.disabled = false;
+            },
+            function(error) {
+                console.error('Geolocation error:', error);
+                alert('Unable to get your location. Please ensure location services are enabled.');
+                
+                // Reset button state
+                btnText.classList.remove('d-none');
+                loadingSpinner.classList.add('d-none');
+                findNearbyBtn.disabled = false;
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 300000 // 5 minutes
+            }
+        );
+    });
+    
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Radius of the Earth in kilometers
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const distance = R * c; // Distance in kilometers
+        return Math.round(distance);
+    }
+    
+    function displayNearbyResults(nearbyDestinations, userLat, userLon) {
+        if (nearbyDestinations.length === 0) {
+            locationResults.innerHTML = `
+                <div class="text-center text-white">
+                    <p>No golf destinations found with location data.</p>
+                </div>
+            `;
+        } else {
+            const resultsHtml = `
+                <div class="text-center text-white mb-3">
+                    <h4>🎯 Golf Destinations Near You</h4>
+                    <p class="mb-0">Found ${nearbyDestinations.length} destinations within range</p>
+                </div>
+                <div class="row">
+                    ${nearbyDestinations.map(dest => `
+                        <div class="col-md-12 mb-2">
+                            <a href="${dest.absolute_url}" class="text-decoration-none">
+                                <div class="p-3 bg-white bg-opacity-10 rounded text-white hover-highlight">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>${dest.name}</strong><br>
+                                            <small>${dest.city}, ${dest.region_or_state}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <strong>${dest.distance} km</strong><br>
+                                            <small>away</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            locationResults.innerHTML = resultsHtml;
+        }
+        
+        locationResults.classList.remove('d-none');
+        
+        // Smooth scroll to results
+        locationResults.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+});
+
+// Typeahead search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const typeaheadDropdown = document.getElementById('typeahead-dropdown');
+    const destinations = {{ destinations_json|safe }};
+    
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+        
+        if (query.length < 2) {
+            typeaheadDropdown.innerHTML = '';
+            typeaheadDropdown.style.display = 'none';
+            return;
+        }
+        
+        searchTimeout = setTimeout(() => {
+            const filteredDestinations = destinations.filter(dest => 
+                dest.name.toLowerCase().includes(query.toLowerCase()) ||
+                dest.city.toLowerCase().includes(query.toLowerCase()) ||
+                dest.region_or_state.toLowerCase().includes(query.toLowerCase()) ||
+                dest.country.toLowerCase().includes(query.toLowerCase())
+            ).slice(0, 5);
+            
+            if (filteredDestinations.length > 0) {
+                const html = filteredDestinations.map(dest => `
+                    <div class="typeahead-item" data-url="${dest.absolute_url}">
+                        <strong>${dest.name}</strong><br>
+                        <small>${dest.city}, ${dest.region_or_state}, ${dest.country}</small>
+                    </div>
+                `).join('');
+                
+                typeaheadDropdown.innerHTML = html;
+                typeaheadDropdown.style.display = 'block';
+                
+                // Add click handlers
+                typeaheadDropdown.querySelectorAll('.typeahead-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        window.location.href = this.dataset.url;
+                    });
+                });
+            } else {
+                typeaheadDropdown.innerHTML = '<div class="typeahead-item">No destinations found</div>';
+                typeaheadDropdown.style.display = 'block';
+            }
+        }, 300);
+    });
+    
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !typeaheadDropdown.contains(e.target)) {
+            typeaheadDropdown.style.display = 'none';
+        }
+    });
+});
+
+// View all destinations functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const viewAllBtn = document.getElementById('view-all-btn');
+    if (viewAllBtn) {
+        viewAllBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Scroll to map section and show all destinations
+            document.querySelector('.map-section').scrollIntoView({ behavior: 'smooth' });
+            // Initialize map with all destinations if not already done
+            if (typeof initMap === 'function') {
+                initMap();
+            }
+        });
+    }
+});
+</script>
+
+<!-- Leaflet Map Script -->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+<script>
+let map;
+let destinationsData = {{ destinations_json|safe }};
+
+function initMap() {
+    if (map) {
+        map.remove();
+    }
+    
+    // Initialize map
+    map = L.map('map').setView([20, 0], 2);
+    
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    // Add markers for destinations
+    destinationsData.forEach(function(dest) {
+        if (dest.latitude && dest.longitude) {
+            const marker = L.marker([dest.latitude, dest.longitude])
+                .addTo(map)
+                .bindPopup(`
+                    <div class="map-popup">
+                        <h6><a href="${dest.absolute_url}">${dest.name}</a></h6>
+                        <p class="mb-1">${dest.city}, ${dest.region_or_state}</p>
+                        <p class="mb-2">${dest.country}</p>
+                        <a href="${dest.absolute_url}" class="btn btn-sm btn-outline-primary">Explore →</a>
+                    </div>
+                `);
+        }
+    });
+}
+
+// Initialize map when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Small delay to ensure the map container is properly sized
+    setTimeout(initMap, 100);
+});
+
+// Reinitialize map on window resize
+window.addEventListener('resize', function() {
+    if (map) {
+        setTimeout(function() {
+            map.invalidateSize();
+        }, 100);
+    }
+});
+</script>
+
+<style>
+.hover-highlight:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    transform: translateX(5px);
+    transition: all 0.3s ease;
+}
+
+.map-popup {
+    min-width: 200px;
+}
+
+.map-popup h6 {
+    margin-bottom: 0.5rem;
+    color: var(--golf-dark);
+}
+
+.map-popup a {
+    text-decoration: none;
+    color: var(--golf-green);
+    font-weight: 600;
+}
+
+.map-popup .btn {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.75rem;
+}
+</style>
 
 {{ destinations_json|json_script:"destinations-data" }}
 
